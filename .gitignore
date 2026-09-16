@@ -1,0 +1,11 @@
+# Build output produced by deploy.ps1 / build.sh
+deploy/
+abc-town-site.zip
+
+# Python
+__pycache__/
+*.pyc
+
+# OS / editor
+Thumbs.db
+.DS_Store

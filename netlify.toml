@@ -1,0 +1,4 @@
+# Netlify continuous deployment: builds from the GitHub repo on every push to main.
+[build]
+  command = "bash build.sh"
+  publish = "deploy"

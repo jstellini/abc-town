@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Character Sheet</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  html, body { position: static; overflow: auto; height: auto; }
+  body { margin: 0; padding: 16px; font-family: Fredoka, system-ui, sans-serif; background: #fff; color: #333; }
+  .hint { margin: 0 0 12px; color: #777; font-size: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+  .card { text-align: center; cursor: pointer; }
+  .card svg { width: 100%; height: auto; display: block; }
+  .card b { display: block; font-size: 15px; }
+  .card i { font-size: 11px; color: #777; font-style: normal; }
+  .card b span { margin-right: 6px; }
+</style>
+</head>
+<body>
+<p class="hint">Click a character to play its town-square reaction.</p>
+<div class="grid" id="grid"></div>
+<script src="../js/data.js"></script>
+<script>
+const grid = document.getElementById('grid');
+CHARACTERS.forEach(async c => {
+  const svg = await fetch(`../${c.img}?${Date.now()}`).then(r => r.text());
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `${svg}<b><span style="color:${c.color}">${c.letter}</span>${c.name}</b>`;
+  const el = card.querySelector('svg');
+  el.setAttribute('class', 'char');
+  card.addEventListener('click', () => {
+    el.classList.remove('act'); void el.getBoundingClientRect(); el.classList.add('act');
+    clearTimeout(card.t); card.t = setTimeout(() => el.classList.remove('act'), 2400);
+  });
+  grid.appendChild(card);
+});
+</script>
+</body>
+</html>

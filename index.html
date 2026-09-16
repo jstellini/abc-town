@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ABC Town">
+<meta name="theme-color" content="#7ec8ff">
+<title>ABC Town</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Andika:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script>
+// Belt-and-suspenders against iOS Safari's double-tap-to-zoom. `touch-action: manipulation`
+// (see style.css) and the game's own `pointerdown` handlers already call preventDefault, but
+// WebKit's double-tap-zoom gesture recognizer watches raw touchend timing regardless of that –
+// so a genuine accidental double-tap can still zoom the page. Cancelling the second touchend
+// within a normal double-tap window stops it at the source.
+(function () {
+  var lastTouchEnd = 0;
+  document.addEventListener('touchend', function (e) {
+    var now = Date.now();
+    if (now - lastTouchEnd < 350) e.preventDefault();
+    lastTouchEnd = now;
+  }, { passive: false });
+})();
+</script>
+</head>
+<body>
+<div id="app">
+
+  <!-- Start (also unlocks audio on iPad) -->
+  <section id="screen-start" class="screen active">
+    <div class="start-inner">
+      <h1 class="logo"><span class="l1">A</span><span class="l2">B</span><span class="l3">C</span> <span class="town">Town</span></h1>
+      <div class="start-parade">
+        <img src="assets/characters/apple.svg" alt="">
+        <img src="assets/characters/octopus.svg" alt="">
+        <img src="assets/characters/sun.svg" alt="">
+        <img src="assets/characters/robot.svg" alt="">
+        <img src="assets/characters/lollipop.svg" alt="">
+      </div>
+      <button id="btn-start" class="big-btn">▶ &nbsp;Tap to play</button>
+      <div id="a2hs-note" class="a2hs-note hidden">
+        <span>📱 For the best experience, add ABC Town to your Home Screen: <b>Share ▸ Add to Home Screen</b></span>
+        <button id="a2hs-close" aria-label="Dismiss">✕</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Home: letter grid -->
+  <section id="screen-home" class="screen">
+    <header class="bar">
+      <div class="bar-title">Pick a letter!</div>
+      <button id="btn-town" class="round-btn wide" aria-label="Town square">🏡 <span id="town-count">0</span></button>
+      <div id="parent-btn-wrap" class="parent-btn-wrap">
+        <button id="btn-parent" class="round-btn small" aria-label="Grown-ups (hold)">⚙️</button>
+        <svg class="hold-ring" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="19.5"></circle></svg>
+        <div id="parent-hint" class="hint-bubble hidden">Hold to open settings</div>
+      </div>
+    </header>
+    <div id="letter-grid" class="letter-grid"></div>
+  </section>
+
+  <!-- Letter intro -->
+  <section id="screen-intro" class="screen">
+    <button class="round-btn back-btn" data-go="home" aria-label="Back">⬅</button>
+    <div class="intro-inner">
+      <button id="intro-card" class="letter-card"><span class="up">A</span><span class="low">a</span><span class="hint-ear">🔊</span></button>
+      <div id="intro-char" class="intro-char"><img alt=""><span class="q">?</span></div>
+      <button id="btn-play" class="big-btn">Let's play! 🎈</button>
+    </div>
+  </section>
+
+  <!-- Minigames -->
+  <section id="screen-game" class="screen">
+    <header class="bar game-bar">
+      <button class="round-btn back-btn inline" data-go="home" aria-label="Back">⬅</button>
+      <div id="game-prompt" class="game-prompt">Find the letter</div>
+      <button id="game-target" class="target-card">A</button>
+      <div id="game-stars" class="stars"></div>
+    </header>
+    <div id="game-area" class="game-area"></div>
+    <div id="game-toast" class="toast"></div>
+  </section>
+
+  <!-- Character reveal -->
+  <section id="screen-reveal" class="screen">
+    <div class="reveal-inner">
+      <div id="reveal-badge" class="reveal-badge">New friend!</div>
+      <div class="reveal-row">
+        <div id="reveal-letter" class="reveal-letter">A</div>
+        <div id="reveal-char" class="reveal-char"><img alt=""></div>
+      </div>
+      <div id="reveal-name" class="reveal-name">Apple</div>
+      <div class="reveal-btns">
+        <button id="btn-reveal-town" class="big-btn">🏡 &nbsp;Visit town</button>
+        <button id="btn-reveal-home" class="big-btn alt">🔤 &nbsp;More letters</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Town: three screens wide (farm, square, park) – drag or use the arrows to scroll -->
+  <section id="screen-town" class="screen">
+    <div id="town-view" class="town-view">
+      <div class="sky"></div>
+      <div class="stars" id="stars"></div>
+      <div class="sun"></div>
+      <div class="moon"></div>
+      <div class="rainbow" id="rainbow"></div>
+      <div class="layer far" id="layer-far">
+        <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div><div class="cloud c4"></div><div class="cloud c5"></div>
+        <div class="balloon-ride"><div class="ride"><i class="env"></i><i class="ropes"></i><i class="basket"></i></div></div>
+      </div>
+      <div class="layer mid" id="layer-mid">
+        <div class="hill h1"></div><div class="hill h2"></div><div class="hill h3"></div><div class="hill h4"></div><div class="hill h5"></div><div class="hill h6"></div>
+      </div>
+      <div id="town-stage" class="town-stage">
+        <div class="rails"></div>
+        <div class="choochoo" id="train">
+          <b class="engine"><i class="chimney"></i><i class="cab"></i><i class="wheels"></i></b>
+          <b class="carriage" style="--c:#2196f3"><i class="wheels"></i></b>
+          <b class="carriage" style="--c:#3ecf3e"><i class="wheels"></i></b>
+          <b class="carriage" style="--c:#ff4fa3"><i class="wheels"></i></b>
+        </div>
+        <div class="houses">
+          <!-- farm -->
+          <div class="barn" id="barn"><i class="roof"></i><i class="vane">🐓</i><i class="loft"></i><i class="cow"><b class="tail"></b><b class="head"><b class="ears"></b></b></i><i class="door-l"></i><i class="door-r"></i></div>
+          <div class="windmill" style="left:13%"><i class="body"></i><i class="cap"></i><i class="door"></i><i class="sails"><b></b><b></b><b></b><b></b></i></div>
+          <div class="tree" style="left:20.5%"></div>
+          <div class="house" style="--c:#ffe08a;--r:#e07a1f;left:25%;--s:.9"><i class="win"></i><i class="door"></i></div>
+          <!-- square -->
+          <div class="house" style="--c:#ffb3c6;--r:#e63946;left:35.5%"><i class="win"></i><i class="door"></i></div>
+          <div class="tree" style="left:40.5%"></div>
+          <div class="house tower" style="--c:#cdb4ff;--r:#7b2cbf;left:48.2%;--s:1.3"><i class="win"></i><i class="win w2"></i><i class="door"></i><i class="flag"></i></div>
+          <div class="house" style="--c:#a8e6ff;--r:#1e6fb8;left:55.5%;--s:.95"><i class="win"></i><i class="door"></i></div>
+          <div class="shop" style="left:60.5%"><i class="shop-sign">🧁</i><i class="awning"></i><i class="win"></i><i class="door"></i></div>
+          <div class="tree" style="left:65%"></div>
+          <!-- park -->
+          <div class="ferris" style="left:69.5%"><i class="leg l"></i><i class="leg r"></i><i class="wheel"></i><i class="cars"><b></b><b></b><b></b><b></b><b></b><b></b></i></div>
+          <div class="station" id="station"><i class="canopy"></i><i class="bell">🔔</i><i class="clock"></i><i class="board">🚂 ABC</i><i class="door"></i></div>
+          <div class="tree" style="left:88%"></div>
+          <div class="house" style="--c:#c8f7c5;--r:#2e8b57;left:92%;--s:.85"><i class="win"></i><i class="door"></i></div>
+        </div>
+        <div class="ground"></div>
+        <div class="path"></div>
+        <div class="nightfall"></div>
+        <div class="fireflies" id="fireflies"></div>
+        <!-- farm: pond, veggie patch, scarecrow -->
+        <div class="pond grounded" id="pond"><i class="ripple"></i><i class="ripple r2"></i><i class="lily"></i><i class="fish"></i><i class="duck"><span><b class="body"></b><b class="head"></b></span></i><i class="frog"></i></div>
+        <div class="patch grounded" id="patch"><b class="carrot"></b><b class="carrot"></b><b class="carrot"></b><b class="carrot"></b><b class="carrot"></b><b class="carrot"></b><i class="rabbit"><b></b></i></div>
+        <div class="scarecrow grounded" id="scarecrow"><i class="hat"></i><i class="head"></i><i class="shirt"></i></div>
+        <!-- square: fountain, post box, lamp -->
+        <div id="fountain" class="fountain grounded"><i></i><i></i><i></i><i></i><i></i><div class="geyser"></div></div>
+        <div class="postbox grounded" id="postbox"></div>
+        <div class="lamp grounded" id="lamp"><i class="light"></i></div>
+        <!-- park: swing, slide, ice-cream van, rocket -->
+        <div class="swing grounded" id="swing"><i class="post l"></i><i class="post r"></i><i class="beam"></i><i class="seat-arm"><b class="seat"></b><b class="rider">🧸</b></i></div>
+        <div class="slide grounded" id="slide"><i class="legs"></i><i class="chute"></i><i class="ladder"></i><i class="top"></i></div>
+        <div class="van grounded" id="van"><i class="cone">🍦</i><i class="body"><b class="hatch"></b><b class="shutter"></b><b class="cab"></b></i><i class="wheel l"></i><i class="wheel r"></i></div>
+        <div class="rocket-pad grounded" id="rocket"><i class="tower"></i><i class="rocket"><b class="chute"></b><b class="window"></b><b class="fins"></b><b class="flame"></b></i></div>
+        <div class="flowers f1"></div><div class="flowers f2"></div><div class="flowers f3"></div><div class="flowers f4"></div><div class="flowers f5"></div>
+        <div id="town-empty" class="town-empty hidden">
+          <div class="sign">Play a letter<br>to meet a friend!</div>
+        </div>
+        <div id="townies"></div>
+      </div>
+      <button class="pan-btn left" id="pan-left" aria-label="Scroll left">◀</button>
+      <button class="pan-btn right" id="pan-right" aria-label="Scroll right">▶</button>
+    </div>
+    <button class="round-btn back-btn" data-go="home" aria-label="Back">⬅</button>
+  </section>
+
+  <div id="rotate-overlay"><div><span>🔄</span><p>Turn your iPad sideways!</p></div></div>
+
+  <div id="parent-panel" class="modal hidden">
+    <div class="modal-box">
+      <h2>Grown-ups</h2>
+      <p>Characters collected: <b id="pp-count">0</b> / 26</p>
+      <p class="muted">Voice: <span id="pp-voice-name"></span></p>
+      <button id="pp-voice" class="pp-btn">🔊 Test the voice</button>
+      <button id="pp-unlock" class="pp-btn">🔓 Unlock everyone (for testing)</button>
+      <button id="pp-reset" class="pp-btn danger">🗑 Reset progress</button>
+      <button id="pp-close" class="pp-btn">Close</button>
+    </div>
+  </div>
+
+  <canvas id="fx"></canvas>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/voice-manifest.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/games.js"></script>
+<script src="js/town.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

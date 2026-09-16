@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Character Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; font-family:Fredoka, system-ui, sans-serif; background:#fff; color:#333;
+         display:flex; flex-direction:column; align-items:center; padding:24px; gap:10px; }
+  #stage svg { width:min(70vw, 360px); height:auto; }
+  .name  { font-size:30px; font-weight:700; }
+  .title { font-size:18px; color:#777; margin-top:-8px; }
+  .seed  { font-family:monospace; font-size:12px; color:#bbb; }
+  button { font:inherit; font-size:18px; padding:10px 24px; border-radius:999px; border:0;
+           background:#7ec8ff; color:#fff; cursor:pointer; box-shadow:0 4px 0 #4ea8de; }
+  button:active { transform:translateY(3px); box-shadow:0 1px 0 #4ea8de; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div class="name" id="name"></div>
+<div class="title" id="title"></div>
+<div class="seed" id="seed"></div>
+<button onclick="gen()">Generate another</button>
+
+<script>
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let rnd;
+const R=(a,b)=>a+rnd()*(b-a);
+const pick=a=>a[Math.floor(rnd()*a.length)];
+const chance=p=>rnd()<p;
+const f=n=>Math.round(n*10)/10;
+
+const PALETTE=[
+  {base:'#e63946',light:'#ff8a94',dark:'#9b1c26'},
+  {base:'#f4a261',light:'#ffd6ad',dark:'#b85d12'},
+  {base:'#ffd23f',light:'#fff4b0',dark:'#c98f00'},
+  {base:'#57cc99',light:'#b0f2d3',dark:'#23875f'},
+  {base:'#4ea8de',light:'#b3e0ff',dark:'#1b5ea3'},
+  {base:'#9b5de5',light:'#d9bfff',dark:'#5a189a'},
+  {base:'#ff70a6',light:'#ffc2da',dark:'#c2185b'},
+  {base:'#b5723e',light:'#e6bc93',dark:'#6b3a10'},
+  {base:'#3ec1c1',light:'#b0f0f0',dark:'#177e89'},
+  {base:'#f2e2b8',light:'#fffbf0',dark:'#b89a5c'},
+];
+const INK='#3a2e2e';
+
+const SHAPES={
+  round: {d:'M100,45 C135,45 162,72 162,110 C162,150 135,178 100,178 C65,178 38,150 38,110 C38,72 65,45 100,45Z',top:45,bot:178,armY:118,armL:40,armR:160,legX:[82,118],faceY:100},
+  egg:   {d:'M100,38 C138,38 158,88 158,128 C158,165 130,180 100,180 C70,180 42,165 42,128 C42,88 62,38 100,38Z',top:38,bot:180,armY:125,armL:44,armR:156,legX:[82,118],faceY:100},
+  square:{d:'M68,48 L132,48 Q160,48 160,76 L160,150 Q160,178 132,178 L68,178 Q40,178 40,150 L40,76 Q40,48 68,48Z',top:48,bot:178,armY:120,armL:40,armR:160,legX:[80,120],faceY:100},
+  tall:  {d:'M86,30 L114,30 Q142,30 142,58 L142,152 Q142,180 114,180 L86,180 Q58,180 58,152 L58,58 Q58,30 86,30Z',top:30,bot:180,armY:120,armL:58,armR:142,legX:[84,116],faceY:95},
+  wide:  {d:'M60,70 L140,70 Q170,70 170,100 L170,148 Q170,176 140,176 L60,176 Q30,176 30,148 L30,100 Q30,70 60,70Z',top:70,bot:176,armY:128,armL:30,armR:170,legX:[78,122],faceY:112},
+  pear:  {d:'M100,38 C118,38 124,60 128,78 C150,92 165,120 160,150 C155,176 128,182 100,182 C72,182 45,176 40,150 C35,120 50,92 72,78 C76,60 82,38 100,38Z',top:38,bot:182,armY:130,armL:44,armR:156,legX:[82,118],faceY:106},
+  drop:  {d:'M100,32 C118,66 160,92 160,132 C160,162 132,182 100,182 C68,182 40,162 40,132 C40,92 82,66 100,32Z',top:32,bot:182,armY:130,armL:44,armR:156,legX:[82,118],faceY:114},
+};
+function blobShape(){
+  const j=()=>R(-8,8);
+  return {d:`M100,${42+j()} C${150+j()},${38+j()} ${170+j()},${80+j()} ${164+j()},${120+j()} C${160+j()},${164+j()} ${135+j()},${184+j()} 100,${180+j()} C${65+j()},${184+j()} ${40+j()},${162+j()} ${37+j()},${120+j()} C${34+j()},${80+j()} ${52+j()},${44+j()} 100,${42+j()}Z`,
+          top:42,bot:180,armY:122,armL:40,armR:160,legX:[82,118],faceY:102};
+}
+
+const NAMES=['Pip','Bobo','Zuzu','Momo','Tilly','Wobble','Dot','Snug','Bloop','Pickle','Nibs','Ziggy','Fizz','Bumble','Poppet','Dizzy','Wiggle','Boop','Tofu','Noodle','Squish','Jelly','Pudding','Button','Waffle','Biscuit','Twinkle','Muffin','Pebble','Gumdrop'];
+const TITLES={
+  happy:['The Happy One','The Giggler','The Sunny One','The Bouncy One'],
+  cheeky:['The Cheeky One','The Trickster','The Show-Off'],
+  grumpy:['The Grumpy One','The Bossy One','The Serious One'],
+  surprised:['The Curious One','The Wide-Eyed One','The Nervous One'],
+  sleepy:['The Sleepy One','The Lazy One','The Dreamer'],
+};
+
+function hand(x,y,side,glove){
+  const s=side; // -1 left, +1 right
+  return `<g fill="${glove}" stroke="${INK}" stroke-width="2.5">
+    <circle cx="${x}" cy="${y}" r="9"/>
+    <circle cx="${f(x+s*7)}" cy="${f(y-6)}" r="4.5"/>
+    <circle cx="${f(x+s*9)}" cy="${f(y+2)}" r="4.5"/>
+    <circle cx="${f(x+s*5)}" cy="${f(y+9)}" r="4.2"/>
+  </g>`;
+}
+
+function arm(sh,side,pose,limb,glove){
+  const sx=side<0?sh.armL:sh.armR, sy=sh.armY, s=side;
+  let cx,cy,hx,hy;
+  switch(pose){
+    case 'down': cx=sx+s*14; cy=sy+22; hx=sx+s*12; hy=sy+44; break;
+    case 'out':  cx=sx+s*18; cy=sy+2;  hx=sx+s*34; hy=sy+8;  break;
+    case 'up':   cx=sx+s*26; cy=sy-6;  hx=sx+s*24; hy=sy-42; break;
+    case 'hip':  cx=sx+s*30; cy=sy+20; hx=sx-s*4;  hy=sy+42; break;
+  }
+  return `<path d="M${sx},${sy} Q${cx},${cy} ${hx},${hy}" fill="none" stroke="${limb}" stroke-width="7" stroke-linecap="round"/>`+hand(hx,hy,s,glove);
+}
+
+function leg(sh,i,kick,limb,shoe){
+  const x=sh.legX[i], y=sh.bot-6, s=i?1:-1;
+  if(kick){
+    return `<path d="M${x},${y} Q${x+s*10},${y+10} ${x+s*26},${y+6}" fill="none" stroke="${limb}" stroke-width="7" stroke-linecap="round"/>
+      <ellipse cx="${x+s*32}" cy="${y+6}" rx="13" ry="7" fill="${shoe}" stroke="${INK}" stroke-width="2.5" transform="rotate(${s*-50} ${x+s*32} ${y+6})"/>`;
+  }
+  return `<line x1="${x}" y1="${y}" x2="${x+s*3}" y2="${y+20}" stroke="${limb}" stroke-width="7" stroke-linecap="round"/>
+    <ellipse cx="${x+s*7}" cy="${y+24}" rx="13" ry="7" fill="${shoe}" stroke="${INK}" stroke-width="2.5"/>`;
+}
+
+function eye(cx,cy,r,iris,look,lid,body){
+  const px=cx+look.x*r*0.35, py=cy+look.y*r*0.3;
+  let s=`<ellipse cx="${cx}" cy="${cy}" rx="${r}" ry="${f(r*1.08)}" fill="#fff" stroke="${INK}" stroke-width="2.5"/>
+    <circle cx="${f(px)}" cy="${f(py)}" r="${f(r*0.62)}" fill="${iris}"/>
+    <circle cx="${f(px)}" cy="${f(py)}" r="${f(r*0.4)}" fill="#1a1a1a"/>
+    <circle cx="${f(px-r*0.22)}" cy="${f(py-r*0.25)}" r="${f(r*0.2)}" fill="#fff"/>
+    <circle cx="${f(px+r*0.18)}" cy="${f(py+r*0.2)}" r="${f(r*0.09)}" fill="#fff" opacity=".8"/>`;
+  if(lid) s+=`<path d="M${cx-r-1},${cy-1} A${r+1},${f(r*1.1)} 0 0 1 ${cx+r+1},${cy-1} Z" fill="${body}" stroke="${INK}" stroke-width="2.5"/>`;
+  return s;
+}
+
+function brow(cx,y,mood,side){
+  const s=side;
+  switch(mood){
+    case 'happy':     return `M${cx-10},${y+3} Q${cx},${y-5} ${cx+10},${y+3}`;
+    case 'cheeky':    return s<0?`M${cx-10},${y-2} Q${cx},${y-12} ${cx+10},${y-4}`:`M${cx-10},${y+2} Q${cx},${y-1} ${cx+10},${y+2}`;
+    case 'grumpy':    return `M${cx-s*10},${y-4} Q${cx},${y-1} ${cx+s*10},${y+5}`;
+    case 'surprised': return `M${cx-10},${y-4} Q${cx},${y-14} ${cx+10},${y-4}`;
+    case 'sleepy':    return `M${cx-10},${y+4} Q${cx},${y+3} ${cx+10},${y+6}`;
+  }
+}
+
+function mouth(cx,my,mood,id){
+  switch(mood){
+    case 'happy':
+      return `<clipPath id="m${id}"><path d="M${cx-22},${my} C${cx-10},${my+34} ${cx+10},${my+34} ${cx+22},${my} Z"/></clipPath>
+        <path d="M${cx-22},${my} C${cx-10},${my+34} ${cx+10},${my+34} ${cx+22},${my} Z" fill="#6e1a2b" stroke="${INK}" stroke-width="2.5"/>
+        <g clip-path="url(#m${id})"><rect x="${cx-20}" y="${my-2}" width="40" height="7" fill="#fff"/><ellipse cx="${cx}" cy="${my+24}" rx="12" ry="8" fill="#ff7b9c"/></g>`;
+    case 'cheeky':
+      return `<path d="M${cx-16},${my} Q${cx},${my+16} ${cx+18},${my-4}" fill="none" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>
+        <ellipse cx="${cx+9}" cy="${my+8}" rx="6" ry="5" fill="#ff7b9c" stroke="${INK}" stroke-width="2"/>`;
+    case 'grumpy':
+      return `<path d="M${cx-12},${my+6} Q${cx},${my-2} ${cx+12},${my+6}" fill="none" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`;
+    case 'surprised':
+      return `<ellipse cx="${cx}" cy="${my+6}" rx="8" ry="10" fill="#6e1a2b" stroke="${INK}" stroke-width="2.5"/>`;
+    case 'sleepy':
+      return `<path d="M${cx-12},${my} Q${cx},${my+10} ${cx+12},${my}" fill="none" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`;
+  }
+}
+
+function accessory(kind,sh,pal,eyes,id){
+  const top=sh.top, c=pick(PALETTE.filter(p=>p!==pal));
+  switch(kind){
+    case 'tophat':
+      return `<g stroke="${INK}" stroke-width="2.5"><rect x="${100-24}" y="${top-40}" width="48" height="40" rx="5" fill="${c.dark}"/>
+        <rect x="${100-24}" y="${top-14}" width="48" height="8" fill="${c.base}" stroke="none"/>
+        <rect x="${100-36}" y="${top-6}" width="72" height="9" rx="4" fill="${c.dark}"/></g>`;
+    case 'party':
+      return `<g stroke="${INK}" stroke-width="2.5"><clipPath id="p${id}"><path d="M100,${top-48} L${100+24},${top+8} L${100-24},${top+8} Z"/></clipPath>
+        <path d="M100,${top-48} L${100+24},${top+8} L${100-24},${top+8} Z" fill="${c.base}"/>
+        <g clip-path="url(#p${id})" stroke="none" fill="${c.light}"><rect x="60" y="${top-36}" width="80" height="9"/><rect x="60" y="${top-16}" width="80" height="9"/></g>
+        <circle cx="100" cy="${top-48}" r="7" fill="#fff"/></g>`;
+    case 'cap':
+      return `<g stroke="${INK}" stroke-width="2.5"><path d="M${100-30},${top+4} A30,26 0 0 1 ${100+30},${top+4} Z" fill="${c.base}"/>
+        <path d="M${100+20},${top+2} Q${100+50},${top-2} ${100+52},${top+10} L${100+22},${top+8} Z" fill="${c.dark}"/>
+        <circle cx="100" cy="${top-22}" r="4" fill="${c.dark}"/></g>`;
+    case 'crown':
+      return `<path d="M${100-26},${top+6} L${100-26},${top-26} L${100-13},${top-10} L100,${top-34} L${100+13},${top-10} L${100+26},${top-26} L${100+26},${top+6} Z" fill="#ffd23f" stroke="#b8860b" stroke-width="2.5"/>
+        <circle cx="${100-26}" cy="${top-26}" r="4" fill="#e63946"/><circle cx="100" cy="${top-34}" r="4" fill="#4ea8de"/><circle cx="${100+26}" cy="${top-26}" r="4" fill="#57cc99"/>`;
+    case 'stem':
+      return `<path d="M100,${top+2} Q102,${top-10} 106,${top-18}" fill="none" stroke="#6b3a10" stroke-width="5" stroke-linecap="round"/>
+        <ellipse cx="118" cy="${top-14}" rx="13" ry="6" fill="#57cc99" stroke="#23875f" stroke-width="2" transform="rotate(-25 118 ${top-14})"/>`;
+    case 'antenna':
+      return `<line x1="100" y1="${top+2}" x2="100" y2="${top-22}" stroke="${INK}" stroke-width="4"/>
+        <circle cx="100" cy="${top-26}" r="7" fill="${c.base}" stroke="${INK}" stroke-width="2.5"/><circle cx="97" cy="${top-29}" r="2" fill="#fff"/>`;
+    case 'glasses': {
+      const r=eyes.r+5, fc=pick(['#1a1a1a','#e63946','#1b5ea3','#b8860b']);
+      return `<g fill="none" stroke="${fc}" stroke-width="4"><circle cx="${eyes.l}" cy="${eyes.y}" r="${r}"/><circle cx="${eyes.rx}" cy="${eyes.y}" r="${r}"/>
+        <line x1="${eyes.l+r}" y1="${eyes.y}" x2="${eyes.rx-r}" y2="${eyes.y}"/></g>`;
+    }
+    case 'bowtie': {
+      const y=Math.min(sh.faceY+56, sh.bot-12);
+      return `<g fill="${c.base}" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"><path d="M100,${y} L82,${y-10} L82,${y+10} Z"/><path d="M100,${y} L118,${y-10} L118,${y+10} Z"/><circle cx="100" cy="${y}" r="4.5" fill="${c.dark}"/></g>`;
+    }
+    case 'scarf': {
+      const y=sh.bot-42;
+      return `<g clip-path="url(#body${id})"><rect x="20" y="${y}" width="160" height="16" fill="${c.base}"/><rect x="20" y="${y+3}" width="160" height="4" fill="${c.light}" opacity=".7"/></g>
+        <rect x="112" y="${y+10}" width="16" height="34" rx="3" fill="${c.base}" stroke="${INK}" stroke-width="2.5"/>
+        <g stroke="${INK}" stroke-width="2"><line x1="115" y1="${y+44}" x2="115" y2="${y+50}"/><line x1="120" y1="${y+44}" x2="120" y2="${y+50}"/><line x1="125" y1="${y+44}" x2="125" y2="${y+50}"/></g>`;
+    }
+  }
+  return '';
+}
+
+function makeCharacter(seed){
+  rnd=mulberry32(seed);
+  const id=seed.toString(36);
+  const pal=pick(PALETTE);
+  const sh=chance(0.3)?blobShape():pick(Object.values(SHAPES));
+  const mood=pick(['happy','happy','cheeky','grumpy','surprised','sleepy']);
+  const limb=chance(0.5)?pal.dark:INK;
+  const glove=pick(['#fff','#fff',pal.light]);
+  const shoe=pick(['#e63946','#1b5ea3','#3a2e2e','#6b3a10','#57cc99']);
+  const iris=pick(['#2b2b2b','#1d5fa8','#5a3a1a','#2a7f4f','#2b2b2b']);
+  const look={x:R(-0.6,0.6),y:R(-0.3,0.4)};
+  const eyeR=R(13,19), eyeGap=R(17,26), eyeY=sh.faceY;
+  const eyeL=100-eyeGap, eyeRx=100+eyeGap;
+  const asym=chance(0.3)?R(0.8,0.95):1;
+  const mouthY=eyeY+eyeR+16;
+
+  const hats=['tophat','party','cap','crown','stem','antenna','none','none'];
+  const hat=pick(hats);
+  const extras=[];
+  if(chance(0.35)) extras.push('glasses');
+  if(chance(0.35)) extras.push('bowtie');
+  if(chance(0.25)) extras.push('scarf');
+  const poseL=pick(['down','out','up','hip']), poseR=pick(['down','out','up','hip']);
+  const kickI=chance(0.25)?(chance(0.5)?0:1):-1;
+  const texture=pick(['none','none','spots','stripes']);
+
+  let svg=`<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="g${id}" cx="35%" cy="28%" r="80%"><stop offset="0" stop-color="${pal.light}"/><stop offset=".5" stop-color="${pal.base}"/><stop offset="1" stop-color="${pal.dark}"/></radialGradient>
+    <clipPath id="body${id}"><path d="${sh.d}"/></clipPath>
+  </defs>
+  <ellipse cx="100" cy="${sh.bot+28}" rx="58" ry="8" fill="#000" opacity=".12"/>`;
+
+  svg+=leg(sh,0,kickI===0,limb,shoe)+leg(sh,1,kickI===1,limb,shoe);
+  svg+=arm(sh,-1,poseL,limb,glove)+arm(sh,1,poseR,limb,glove);
+
+  svg+=`<path d="${sh.d}" fill="url(#g${id})" stroke="${pal.dark}" stroke-width="3" stroke-linejoin="round"/>`;
+
+  if(texture==='spots'){
+    svg+=`<g clip-path="url(#body${id})" fill="${pal.dark}" opacity=".45">`;
+    for(let i=0;i<12;i++) svg+=`<circle cx="${f(R(30,170))}" cy="${f(R(sh.top,sh.bot))}" r="${f(R(3,7))}"/>`;
+    svg+=`</g>`;
+  } else if(texture==='stripes'){
+    svg+=`<g clip-path="url(#body${id})" fill="${pal.light}" opacity=".55">`;
+    for(let y=sh.top+10;y<sh.bot;y+=28) svg+=`<rect x="0" y="${y}" width="200" height="11"/>`;
+    svg+=`</g>`;
+  }
+  svg+=`<ellipse cx="${f(100-eyeGap-8)}" cy="${sh.top+22}" rx="14" ry="8" fill="#fff" opacity=".45" transform="rotate(-30 ${f(100-eyeGap-8)} ${sh.top+22})"/>`;
+
+  // face
+  svg+=`<ellipse cx="${eyeL-eyeR-4}" cy="${eyeY+eyeR+2}" rx="9" ry="6" fill="#ff8fa3" opacity=".55"/><ellipse cx="${eyeRx+eyeR+4}" cy="${eyeY+eyeR+2}" rx="9" ry="6" fill="#ff8fa3" opacity=".55"/>`;
+  const lid=mood==='sleepy';
+  svg+=eye(eyeL,eyeY,f(eyeR*asym),iris,look,lid,pal.base)+eye(eyeRx,eyeY,eyeR,iris,look,lid,pal.base);
+  const by=eyeY-eyeR-8;
+  svg+=`<g fill="none" stroke="${INK}" stroke-width="4" stroke-linecap="round"><path d="${brow(eyeL,by,mood,-1)}"/><path d="${brow(eyeRx,by,mood,1)}"/></g>`;
+  svg+=mouth(100,mouthY,mood,id);
+
+  for(const e of extras) svg+=accessory(e,sh,pal,{l:eyeL,rx:eyeRx,y:eyeY,r:eyeR},id);
+  if(hat!=='none') svg+=accessory(hat,sh,pal,null,id);
+  svg+=`</svg>`;
+
+  return {svg,name:pick(NAMES),title:pick(TITLES[mood]),mood};
+}
+
+function gen(seed){
+  seed = seed ?? (Date.now() ^ (Math.random()*1e9)) >>> 0;
+  const c=makeCharacter(seed);
+  document.getElementById('stage').innerHTML=c.svg;
+  document.getElementById('name').textContent=c.name;
+  document.getElementById('title').textContent=c.title;
+  document.getElementById('seed').textContent='seed '+seed;
+  location.hash=seed;
+}
+gen(location.hash.slice(1)?parseInt(location.hash.slice(1),10):undefined);
+</script>
+</body>
+</html>
