@@ -163,6 +163,9 @@ const Voice = (() => {
         if (synth) synth.cancel();
         if (!clip) clip = new Audio();
         clip.pause();
+        // If the clip is missing or fails to load (404, bad file), fall back
+        // to text-to-speech rather than saying nothing at all.
+        clip.onerror = () => { if (clip.src.endsWith(src)) speak(text, rate, pitch); };
         clip.src = src;
         clip.currentTime = 0;
         clip.play().catch(() => {});

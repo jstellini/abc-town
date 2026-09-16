@@ -100,7 +100,9 @@ the grown-ups panel: test the voice, unlock everyone (for trying the town), or r
   python tools/generate_voice.py --voice en-GB-SoniaNeural
   ```
   (`python -m edge_tts --list-voices` lists other options.) This rewrites `assets/voice/*.mp3` and
-  `js/voice-manifest.js` from scratch.
+  `js/voice-manifest.js` from scratch. After adding a game or a new line, run it with `--missing`
+  to generate only the clips that don't exist yet. The manifest only ever lists clips that are
+  really on disk, and the script warns about any line that will fall back to browser TTS.
 - **Difficulty** – `ROUNDS` (find) and `GOAL` (pop / magnet / train / ice / monster) in `js/games.js`; `HITS` (ice) is taps per block; balloon count is the
   `distractors(L, 5)` call; bubble spawn rate is the `spawnT > 1.0` check; distractor counts for
   magnet and train are their `distractors(L, n)` calls.
