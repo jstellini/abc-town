@@ -18,8 +18,20 @@ minigames (two from the rotation, then Build-a-Letter), and unlock a character w
 
 Hold the iPad sideways – the game asks for landscape.
 
-For a permanent home (no PC needed), drop the folder onto any free static host
-(GitHub Pages, Netlify drop, Cloudflare Pages) – there is no build step.
+**Live site:** <https://abctown.netlify.app>
+
+## Working on it
+
+The source lives at <https://github.com/jstellini/abc-town> (private). Netlify is linked to the repo:
+every push to `main` runs `build.sh` (copies just the runtime files into `deploy/`) and publishes it,
+so nothing depends on any one PC.
+
+- **From anywhere** – start a Claude Code cloud session on the repo (claude.ai/code or the Claude app's
+  Code tab), describe the change, then merge the resulting pull request. Netlify posts a deploy preview
+  link on every PR so you can try it on the iPad before merging.
+- **On this PC** – run `git pull` first (cloud sessions will have pushed changes), edit, then
+  `git commit` and `git push`.
+- `deploy.ps1` still works as a manual upload if Netlify's Git build is ever unavailable.
 
 ## How it plays
 
