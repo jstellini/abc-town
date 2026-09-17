@@ -25,7 +25,6 @@ VOICE_DIR = ROOT / "assets" / "voice"
 MANIFEST_JS = ROOT / "js" / "voice-manifest.js"
 
 WELCOME_TEXT = "Welcome to A B C Town! Pick a letter!"
-ALPHABET = [chr(c) for c in range(ord("A"), ord("Z") + 1)]
 
 ROW_RE = re.compile(
     r"letter:\s*'([^']+)'.*?name:\s*'([^']+)'.*?sound:\s*'([^']+)'"
@@ -57,14 +56,7 @@ def load_picture_words():
     """The words Finish-the-Word shows a picture of (PICTURE_WORDS in js/data.js)."""
     text = DATA_JS.read_text(encoding="utf-8")
     block = text.split("const PICTURE_WORDS = [", 1)[1].split("\n];", 1)[0]
-    words = re.findall(r"word:\s*'([a-z]+)'", block)
-    # The game hides the letter being learned, so a letter with no word here has
-    # nothing to play.
-    empty = [L for L in ALPHABET if not any(L in w.upper() for w in words)]
-    if empty:
-        print(f"warning: no picture word contains {', '.join(empty)} — "
-              "Finish-the-Word will skip those letters", file=sys.stderr)
-    return words
+    return re.findall(r"word:\s*'([a-z]+)'", block)
 
 
 def load_words():
@@ -75,7 +67,16 @@ def load_words():
 def build_lines(chars):
     """Returns a list of (key, text) — must match every Voice.say() call site
     in js/app.js, js/games.js and js/town.js."""
-    lines = [("welcome", WELCOME_TEXT), ("monster-yuck", "Yuck! Not that one!")]
+    lines = [
+        ("welcome", WELCOME_TEXT),
+        ("monster-yuck", "Yuck! Not that one!"),
+        ("words-hub", "Welcome to Word Town! Pick a game!"),
+        ("words-build", "Build the word!"),
+        ("words-finish", "Finish the word! Which letter is missing?"),
+        ("words-try", "Not quite. Try again!"),
+        ("words-done", "Brilliant! You did it!"),
+        ("words-locked", "Collect all the letters first, then Word Town will open!"),
+    ]
     lines += [(f"word-{w}", f"{w.capitalize()}!") for w in load_words()]
     for c in chars:
         L, name, sound = c["letter"], c["name"], c["sound"]
@@ -89,7 +90,10 @@ def build_lines(chars):
             (f"{L}-ice", f"The letters are frozen! Tap the ice to smash it and find the letter {L}!"),
             (f"{L}-paint", f"Let's paint the letter {L}! Tap a colour, then tap the letter!"),
             (f"{L}-monster", f"The monster is hungry! Feed him the letter {L}!"),
-            (f"{L}-word", f"Let's finish the words! Find the missing letter {L}!"),
+            # Word Town asks about SPELLING, never sound – X says /z/, I is a long
+            # i and Q is 'kwuh', so "starts with the letter X" is the only wording
+            # that stays true for all 26.
+            (f"{L}-starts", f"Which name starts with the letter {L}?"),
             (f"{L}-tick", f"{L}!"),
             (f"{L}-find-done", f"{L}! Well done!"),
             (f"{L}-pop-done", f"{L}! Hooray!"),
@@ -99,7 +103,6 @@ def build_lines(chars):
             (f"{L}-ice-done", f"{L}! You smashed them all!"),
             (f"{L}-paint-done", f"{L}! Beautiful! Tap the big tick when you're finished!"),
             (f"{L}-monster-done", f"{L}! Yum yum! The monster is full!"),
-            (f"{L}-word-done", f"{L}! You finished all the words!"),
             (f"{L}-reveal", f"{L} is for {name}!"),
             (f"{L}-reveal-tap", f"{name}!"),
         ]

@@ -122,12 +122,13 @@ const TRAIN_WORDS = [
   'leg', 'hug', 'mop', 'pot', 'bee', 'sea', 'sky', 'run',
 ];
 
-// Picture words for Finish-the-Word: a word and the picture that gives it away.
-// The game hides the letter being learned, so every letter needs at least one
-// word containing it – Q only manages that in a longer word, there being no
-// three-letter ones. Each word needs a "word-<word>" voice clip, so after adding
-// one run `python tools/generate_voice.py --missing` (the script reads this list
-// as well as TRAIN_WORDS, and warns about any letter left without a word).
+// Picture words for Word Town's Finish-the-word: a word and the picture that
+// gives it away. The game hides the word's first letter and shows the picture, so
+// a word only earns its place here if a three-year-old can name it from the
+// picture alone – and the emoji has to be old enough for the iPad's iOS.
+// Each word needs a "word-<word>" voice clip, so after adding one run
+// `python tools/generate_voice.py --missing` (the script reads this list as well
+// as TRAIN_WORDS).
 const PICTURE_WORDS = [
   { word: 'ant',    pic: '🐜' }, { word: 'arm',    pic: '💪' }, { word: 'bat',    pic: '🦇' },
   { word: 'bed',    pic: '🛏️' }, { word: 'bee',    pic: '🐝' }, { word: 'box',    pic: '📦' },

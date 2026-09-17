@@ -56,14 +56,9 @@ so nothing depends on any one PC.
 - **Feed the monster** – a hungry monster shows the letter it wants in a bubble. Letter snacks
   drift across the sky; tap one (or drag it to the mouth) to feed it. Five right ones fill him up.
   A wrong one gets chewed, then spat out spinning – "Yuck! Not that one!"
-- **Finish the word** – a picture with its word underneath and one letter missing: the letter
-  being learned. Tap (or drag) it from the three tiles into the gap and the word lights up
-  letter by letter as it is read out, then says itself – *"c, a, t… Cat!"*. Three pictures to
-  win; tap the picture to hear the word again.
 
 Each letter plays the next two games from the rotation (Find → Pop → Magnets → Train → Ice →
-Paint → Monster → Word, advancing three steps per play so the pairings keep changing), then
-finishes with Build-a-Letter.
+Paint → Monster, advancing two steps per play), then finishes with Build-a-Letter.
 - **Reveal** – confetti, fanfare, the character bounces in: *"A is for Apple!"*
 - **Town** – three screens wide: the **farm**, the **square** and the **park**. Drag the scenery
   (or tap the ◀ ▶ arrows) to scroll; the hills and clouds slide slower for depth. Unlocked
@@ -113,15 +108,51 @@ minigames show:
   child has to recognise that `A` and `a` are the same letter. Either form counts as
   correct, and the target card shows both.
 
-Finish-the-Word writes each word in one case throughout; in mixed mode only the tile that
-fills the gap can turn up in the other form, so `c` really does finish `CAT`.
-
 Build-a-Letter and Paint-the-Letter only ever show one letter, so there is nothing to
 match against. Paint picks a form at random in mixed mode; Build instead plays **twice**,
 the big letter then the little one, so the child assembles both shapes of the same letter
 back to back — four minigames rather than three.
 
 The setting is a grown-up's preference rather than progress, so resetting progress keeps it.
+
+### Word Town
+
+The 📖 button on the home screen opens **Word Town**, a hub of word games. It stays locked
+(greyed, showing `n/26`) until every character is collected — tapping it before then says
+what's still needed rather than doing nothing. The grown-ups panel's *Unlock everyone*
+opens it for testing.
+
+- **Who starts with…?** – a lineup of three or four friends and a target letter. Tap the one
+  whose *name* starts with it. Four rounds, then confetti and back to the hub. A wrong tap
+  wobbles; after two misses the right one glows.
+- **Build the word** – a three-letter word is spoken and shown as faint ghost letters in three
+  slots, with a tray of five tiles (the word's letters plus two others). Tap a tile and it flies
+  into the next slot, saying its letter; the finished word is read out. Three words, then back to
+  the hub. Tapping a letter that *is* in the word but isn't next just nudges the cursor rather
+  than counting as a miss — only a letter that isn't in the word at all does that.
+- **Finish the word** – a picture, its word with the **first letter missing**, and three tiles.
+  Tap the letter the word starts with and it flies into the gap; the finished word is then read
+  back letter by letter and said. Three pictures, then back to the hub. Tap the picture to hear
+  the word again. It is the mirror of *Who starts with…?*: that one gives the letter and asks
+  for the word, this one gives the word and asks for the letter. Always the first letter — the
+  vowel in the middle of "cat" is the hardest sound there is, and the last letter is a trap in
+  half the list (the h of fish, the silent e of five, the ng of ring).
+
+Build-the-word's words come from `TRAIN_WORDS` in `js/data.js` (the same 50 the town train
+spells) and Finish-the-word's from `PICTURE_WORDS` beside it, each word with the emoji that
+shows it. Both games speak the pair `Town.startTrain` does — `{L}-tick` per letter, then
+`word-<word>` for the whole word — so the only clips either needed were their prompts.
+
+Case works the same way in both: the word is written in one case throughout (lowercase in mixed
+mode), and it is the *tray* that mixes, so a finished word never reads "cAt" while `Case.same`
+still accepts either form of the right tile.
+
+Word games always ask about **spelling** ("which name starts with the letter X"), never about
+sound. Three characters make a sound-framed question wrong: Xylophone starts with X but says
+/z/, Ice Cream is a long i rather than the short `ih` the letter game teaches, and Queen is
+`kwuh`. For the same reason nothing here plays a `{L}-intro` clip, which carries the phonic
+sound, and the lineup keeps same-sounding letters apart (C/K) and never pairs X with Z — the
+question is about spelling, but a child reasoning by ear shouldn't be punished for it.
 
 ## Tuning
 
@@ -139,7 +170,7 @@ The setting is a grown-up's preference rather than progress, so resetting progre
   `js/voice-manifest.js` from scratch. After adding a game or a new line, run it with `--missing`
   to generate only the clips that don't exist yet. The manifest only ever lists clips that are
   really on disk, and the script warns about any line that will fall back to browser TTS.
-- **Difficulty** – `ROUNDS` (find / word) and `GOAL` (pop / magnet / train / ice / monster) in `js/games.js`; `HITS` (ice) is taps per block; balloon count is the
+- **Difficulty** – `ROUNDS` (find) and `GOAL` (pop / magnet / train / ice / monster) in `js/games.js`; `HITS` (ice) is taps per block; balloon count is the
   `distractors(L, 5)` call; bubble spawn rate is the `spawnT > 1.0` check; distractor counts for
   magnet and train are their `distractors(L, n)` calls.
 - **Letter case** – `js/case.js`. `Case.glyph()` / `Case.glyphs()` pick the form to draw and
@@ -161,17 +192,20 @@ The setting is a grown-up's preference rather than progress, so resetting progre
   size. The star goal counts only pattern pieces with a real footprint inside the letter — a
   piece clipped to a sliver stays paintable but never gates finishing.
 - **Which games play** – `OTHER_GAMES` in `js/app.js` is the rotation order (Build-a-Letter always
-  comes last, and twice in mixed mode – see `startGames`). Each play takes two games and steps
-  `STRIDE` (3) along the list; the stride only has to be coprime with the number of games, which
-  is what keeps the pairs from repeating. The rotation position is stored with
+  comes last, and twice in mixed mode – see `startGames`). The rotation position is stored with
   progress, so resetting progress restarts it. `Games.play` takes an optional `{ form }` to pin
   Build to a particular case; without it the game follows the case mode.
 - **Train words** – `TRAIN_WORDS` in `js/data.js`. Adding one needs its voice clip: run
   `python tools/generate_voice.py --missing`.
-- **Picture words** – `PICTURE_WORDS` in `js/data.js`: the word and the emoji Finish-the-Word
-  shows it with. The game only offers words that contain the letter being learned, preferring
-  the ones that start with it, so every letter needs at least one (the voice script warns if a
-  letter loses its last word). A new word needs its clip: `python tools/generate_voice.py --missing`.
+- **Picture words** – `PICTURE_WORDS` in `js/data.js`: the word and the emoji Finish-the-word
+  shows it with. Keep them concrete enough to guess from the picture alone, and check the emoji
+  is old enough for the iPad's iOS. A new word needs its clip: `python tools/generate_voice.py --missing`.
+- **Word games** – `js/words.js`. `GAMES` at the top is the hub registry: adding a game is one
+  entry (`id`, `title`, `icon`, `make`) plus its function, and the menu builds itself. Each game
+  returns `{ stop() }` like the letter minigames do. The unlock gate is `ALL_COLLECTED()` in
+  `js/app.js`. New spoken lines go in `build_lines` in `tools/generate_voice.py`, then
+  `python tools/generate_voice.py --missing` (use `--missing`, not `--only`, which splits keys
+  on the first hyphen and would read `words-hub` as a letter).
 - **Town behaviour** – `js/town.js`: `GROUND_TOP/BOT` (where characters can stand),
   `convoDist()` (how close they must be to chat), `roamTarget()` (how far they wander), and the
   `react()` switch for tap animations. The town is `.town-stage { width: 300% }` in `css/style.css`;
@@ -209,8 +243,9 @@ js/case.js          uppercase / lowercase / mixed letter mode
 js/voice-manifest.js  key → mp3 lookup for the recorded voice lines (auto-generated)
 js/audio.js         Web Audio sound effects + voice playback (recorded clips, TTS fallback)
 js/fx.js            sparkle / confetti particles
-js/games.js         the nine minigames
+js/games.js         the eight letter minigames
 js/town.js          town square simulation, drag & tap
+js/words.js         Word Town: the word-game hub and its games
 js/app.js           screen flow, progress, grown-ups panel
 assets/voice/       recorded voice-over clips (mp3)
 assets/characters/  character art (svg, generated) + the original png cut-outs

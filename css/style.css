@@ -466,52 +466,6 @@ img { -webkit-user-drag: none; user-select: none; }
 }
 .toast.show { animation: toast 1.5s cubic-bezier(.34,1.56,.64,1) forwards; }
 
-/* ---------- finish the word ---------- */
-.game-area.word {
-  background: linear-gradient(#fff6e2, #ffeacd 65%, #ffd9a8);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4vh;
-}
-.word-card {
-  display: flex; flex-direction: column; align-items: center; gap: 2vh;
-  padding: 2.5vh 4vh 3vh; border-radius: 4vh; background: rgba(255,255,255,.7);
-  box-shadow: var(--shadow); animation: card-in .5s cubic-bezier(.34,1.56,.64,1);
-}
-.word-pic { font-size: 20vh; line-height: 1; cursor: pointer; filter: drop-shadow(0 1vh 1vh rgba(0,0,0,.18)); }
-.word-card.read .word-pic { animation: built-bounce .9s cubic-bezier(.34,1.56,.64,1); }
-.word-letters { display: flex; gap: 1.4vh; }
-.wl {
-  width: 10vh; height: 12.5vh; border-radius: 2vh; background: #fff; color: #3b3f63;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-letter); font-weight: 700; font-size: 9vh; line-height: 1;
-  box-shadow: 0 .7vh 0 rgba(60,70,110,.15);
-  transition: transform .25s, color .25s, background .25s;
-}
-/* the read-back: each letter lifts as it is spoken */
-.wl.lit { transform: translateY(-1.4vh) scale(1.06); color: var(--c); background: #fffbe8; }
-.wl.gap {
-  background: rgba(255,255,255,.35); border: .7vh dashed var(--c); color: var(--c);
-  box-shadow: none; animation: gap-pulse 1.3s ease-in-out infinite;
-}
-.wl.gap.filled { background: #fff; border-style: solid; box-shadow: 0 .7vh 0 rgba(60,70,110,.15); animation: pop-in .4s cubic-bezier(.34,1.56,.64,1); }
-.word-tray { display: flex; gap: 5vh; }
-.word-tray.done .wtile { opacity: 0; transition: opacity .4s; }
-.wtile {
-  position: relative; width: 14vh; height: 14vh; padding: 0; border: 0; background: none;
-  will-change: transform; touch-action: none; -webkit-user-drag: none;
-}
-.wtile .inner {
-  display: flex; width: 100%; height: 100%; align-items: center; justify-content: center;
-  border-radius: 24%; background: var(--c); color: #fff;
-  font-family: var(--font-letter); font-weight: 700; font-size: 9vh; line-height: 1; text-shadow: 0 .3vh 0 rgba(0,0,0,.2);
-  box-shadow: inset 0 -1vh 0 rgba(0,0,0,.18), inset 0 .5vh 0 rgba(255,255,255,.3), 0 .8vh 1.4vh rgba(0,0,0,.28);
-  animation: tile-in .4s cubic-bezier(.34,1.56,.64,1) var(--d, 0ms) backwards;
-  transition: transform .2s, box-shadow .2s;
-}
-.wtile.dragging .inner { transform: scale(1.12); box-shadow: inset 0 -1vh 0 rgba(0,0,0,.18), 0 2.5vh 3vh rgba(0,0,0,.3); }
-.wtile.wobble .inner, .wtile .inner.wobble { animation: shake .45s; }
-.wtile.hint .inner { animation: glow-hint 1s ease-in-out infinite; }
-.wtile.gone { opacity: 0; transition: opacity .2s; }
-
 /* ---------- reveal ---------- */
 #screen-reveal { background: #ffd93b; }
 #screen-reveal::before {
@@ -530,6 +484,94 @@ img { -webkit-user-drag: none; user-select: none; }
 .reveal-char img { height: 100%; filter: drop-shadow(0 10px 8px rgba(0,0,0,.22)); animation: reveal-in .9s cubic-bezier(.34,1.56,.64,1) backwards, bob 2s ease-in-out .9s infinite; }
 .reveal-name { font-size: 9vh; font-weight: 700; color: #fff; text-shadow: 0 .6vh 0 rgba(0,0,0,.2); line-height: 1.1; }
 .reveal-btns { display: flex; gap: 3vw; margin-top: 2vh; }
+
+/* ---------- Word Town ---------- */
+.round-btn.locked { filter: grayscale(1); opacity: .55; }
+.round-btn.locked #words-lock { font-size: .7em; }
+#screen-words { background: linear-gradient(#cdeafe, #eaf6ff); }
+/* The home bar's title is white for the purple grid behind it; this bar is pale. */
+#screen-words .bar-title { color: #3b3f63; text-shadow: none; }
+.words-menu {
+  position: absolute; top: 11vh; left: 0; right: 0; bottom: 0;
+  display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 3vh 3vw; padding: 3vh 6vw;
+}
+.word-tile {
+  width: 34vh; height: 34vh; border-radius: 5vh; background: #fff; box-shadow: var(--shadow);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5vh;
+  animation: card-in .5s cubic-bezier(.34,1.56,.64,1) backwards; transition: transform .12s;
+}
+.word-tile:active { transform: scale(.95); }
+.word-tile-icon { font-size: 11vh; line-height: 1; }
+.word-tile-title { font-size: 3.4vh; font-weight: 700; color: #3b3f63; text-align: center; padding: 0 2vh; }
+
+#screen-wordgame { background: linear-gradient(#ffe9c2, #fff6e4); }
+.word-area {
+  position: absolute; top: 11vh; left: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: center; gap: 3vw; padding: 2vh 4vw;
+}
+.word-card {
+  flex: 0 1 26vh; max-width: 26vh; border-radius: 4vh; background: #fff; box-shadow: var(--shadow);
+  border: .8vh solid var(--c, #ff3b3b); padding: 2vh 1vh 1.5vh;
+  display: flex; flex-direction: column; align-items: center; gap: 1vh;
+  animation: card-in .5s cubic-bezier(.34,1.56,.64,1) backwards;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+}
+.word-card img { height: 22vh; pointer-events: none; }
+.word-name { font-family: var(--font-letter); font-size: 3.4vh; font-weight: 700; color: var(--c, #ff3b3b); line-height: 1; }
+.word-card:active { transform: scale(.96); }
+.word-card.wobble { animation: wobble .6s; }
+.word-card.hint { animation: hint 1s ease-in-out infinite; }
+.word-card.right { transform: scale(1.12); }
+.word-card.dim { opacity: .25; transform: scale(.9); }
+
+/* Build the word: a row of ghosted slots above a tray of letter tiles. */
+.word-area.build { flex-direction: column; gap: 5vh; }
+.word-slots { display: flex; gap: 2.5vw; }
+.wslot {
+  width: 17vh; height: 20vh; border-radius: 3vh; background: rgba(255,255,255,.45);
+  border: .8vh dashed rgba(60,80,110,.25);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-letter); font-weight: 700; font-size: 13vh; line-height: 1;
+  transition: border-color .3s, background .3s, box-shadow .3s;
+}
+.wghost { color: rgba(60,70,110,.16); transition: color .3s; }
+.wslot.next { border-color: var(--c, #ff8a00); border-style: solid; }
+.wslot.next .wghost { animation: ghost-pulse 2s ease-in-out infinite; }
+.wslot.nudge { animation: shake .45s; }
+.wslot.filled { border-color: transparent; background: #fff; box-shadow: var(--shadow); }
+.wslot.filled .wghost { color: var(--c, #ff3b3b); animation: none; }
+.word-area.build.done .wslot { animation: built-bounce .9s cubic-bezier(.34,1.56,.64,1); }
+
+.word-tray { display: flex; gap: 2vw; }
+.wtile {
+  width: 14vh; height: 14vh; border-radius: 3vh; background: var(--c, #ff3b3b); color: #fff;
+  font-family: var(--font-letter); font-weight: 700; font-size: 9vh; line-height: 1;
+  text-shadow: 0 .3vh 0 rgba(0,0,0,.2);
+  box-shadow: inset 0 -.9vh 0 rgba(0,0,0,.18), inset 0 .5vh 0 rgba(255,255,255,.25), 0 .6vh 1.2vh rgba(0,0,0,.28);
+  animation: card-in .5s cubic-bezier(.34,1.56,.64,1) backwards;
+  transition: transform .25s, opacity .3s;
+}
+.wtile:active { transform: scale(.94); }
+.wtile.wobble { animation: shake .45s; }
+.wtile.hint { animation: glow-hint 1s ease-in-out infinite; }
+/* Spent tiles keep their space so the tray never reflows under a finger. */
+.wtile.spent { opacity: 0; pointer-events: none; transform: scale(.6); }
+.wfly { position: fixed; z-index: 50; margin: 0; pointer-events: none; transition: transform .36s cubic-bezier(.34,1.56,.64,1); }
+/* Finish the word: a picture, its word with the first letter missing, and the
+   same tray of tiles Build-the-word uses. */
+.word-area.finish { flex-direction: column; gap: 4vh; }
+.word-pic { font-size: 22vh; line-height: 1; filter: drop-shadow(0 1vh 1vh rgba(0,0,0,.18)); transition: transform .2s; }
+.word-pic:active { transform: scale(.95); }
+.word-area.finish.done .word-pic { animation: built-bounce .9s cubic-bezier(.34,1.56,.64,1); }
+/* The letters already there: ink, not a friend's colour, so only the one the
+   child places is coloured in. */
+.wslot.given { border-color: transparent; background: #fff; box-shadow: var(--shadow); }
+.wslot.given .wghost { color: #3b3f63; }
+/* The read-back pops each letter as it is spoken. */
+.wslot.lit { animation: built-bounce .55s cubic-bezier(.34,1.56,.64,1); }
+
+/* The header card shows the whole word here, not a single letter. */
+.target-card.word { width: auto; min-width: 8.5vh; padding: 0 1.8vh; font-size: 4vh; letter-spacing: .06em; }
 
 /* ---------- town ----------
    The town is three screens wide: farm | square | park. #town-view is the window; #town-stage
@@ -725,7 +767,6 @@ img { -webkit-user-drag: none; user-select: none; }
 @keyframes hint { 0%, 100% { transform: scale(1); box-shadow: inset -1vh -1.4vh 0 rgba(0,0,0,.14), 0 0 0 0 rgba(255,255,255,.9); } 50% { transform: scale(1.15); box-shadow: inset -1vh -1.4vh 0 rgba(0,0,0,.14), 0 0 0 2.5vh rgba(255,255,255,0); } }
 @keyframes glow-hint { 0%, 100% { filter: none; } 50% { filter: brightness(1.3) drop-shadow(0 0 2vh rgba(255,235,120,1)); } }
 @keyframes ghost-pulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
-@keyframes gap-pulse { 0%, 100% { transform: scale(1); opacity: .8; } 50% { transform: scale(1.08); opacity: 1; } }
 @keyframes built-bounce { 0% { transform: scale(1); } 40% { transform: scale(1.18) rotate(-4deg); } 70% { transform: scale(.96) rotate(3deg); } 100% { transform: scale(1); } }
 @keyframes wheel-spin { to { transform: rotate(360deg); } }
 @keyframes chug-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-.6vh); } }
