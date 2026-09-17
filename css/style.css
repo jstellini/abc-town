@@ -524,6 +524,42 @@ img { -webkit-user-drag: none; user-select: none; }
 .word-card.right { transform: scale(1.12); }
 .word-card.dim { opacity: .25; transform: scale(.9); }
 
+/* Build the word: a row of ghosted slots above a tray of letter tiles. */
+.word-area.build { flex-direction: column; gap: 5vh; }
+.word-slots { display: flex; gap: 2.5vw; }
+.wslot {
+  width: 17vh; height: 20vh; border-radius: 3vh; background: rgba(255,255,255,.45);
+  border: .8vh dashed rgba(60,80,110,.25);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-letter); font-weight: 700; font-size: 13vh; line-height: 1;
+  transition: border-color .3s, background .3s, box-shadow .3s;
+}
+.wghost { color: rgba(60,70,110,.16); transition: color .3s; }
+.wslot.next { border-color: var(--c, #ff8a00); border-style: solid; }
+.wslot.next .wghost { animation: ghost-pulse 2s ease-in-out infinite; }
+.wslot.nudge { animation: shake .45s; }
+.wslot.filled { border-color: transparent; background: #fff; box-shadow: var(--shadow); }
+.wslot.filled .wghost { color: var(--c, #ff3b3b); animation: none; }
+.word-area.build.done .wslot { animation: built-bounce .9s cubic-bezier(.34,1.56,.64,1); }
+
+.word-tray { display: flex; gap: 2vw; }
+.wtile {
+  width: 14vh; height: 14vh; border-radius: 3vh; background: var(--c, #ff3b3b); color: #fff;
+  font-family: var(--font-letter); font-weight: 700; font-size: 9vh; line-height: 1;
+  text-shadow: 0 .3vh 0 rgba(0,0,0,.2);
+  box-shadow: inset 0 -.9vh 0 rgba(0,0,0,.18), inset 0 .5vh 0 rgba(255,255,255,.25), 0 .6vh 1.2vh rgba(0,0,0,.28);
+  animation: card-in .5s cubic-bezier(.34,1.56,.64,1) backwards;
+  transition: transform .25s, opacity .3s;
+}
+.wtile:active { transform: scale(.94); }
+.wtile.wobble { animation: shake .45s; }
+.wtile.hint { animation: glow-hint 1s ease-in-out infinite; }
+/* Spent tiles keep their space so the tray never reflows under a finger. */
+.wtile.spent { opacity: 0; pointer-events: none; transform: scale(.6); }
+.wfly { position: fixed; z-index: 50; margin: 0; pointer-events: none; transition: transform .36s cubic-bezier(.34,1.56,.64,1); }
+/* The header card shows the whole word here, not a single letter. */
+.target-card.word { width: auto; min-width: 8.5vh; padding: 0 1.8vh; font-size: 4vh; letter-spacing: .06em; }
+
 /* ---------- town ----------
    The town is three screens wide: farm | square | park. #town-view is the window; #town-stage
    (300% wide) slides left and right under it, with the hills and clouds sliding slower behind. */
