@@ -16,6 +16,7 @@ import argparse
 import sys
 from pathlib import Path
 
+import numpy as np
 import static_ffmpeg
 import pydub.utils
 from pydub import AudioSegment, silence
@@ -29,6 +30,26 @@ pydub.utils.get_prober_name = lambda: _ffprobe
 REC_DIR = Path(__file__).resolve().parent / "recordings"
 RECORDING_EXTS = [".mp3", ".m4a", ".wav", ".aac", ".ogg"]
 TARGET_DBFS = -16.0  # roughly matches the TTS clips' loudness
+
+
+def pitch_shift(audio, semitones):
+    """Raise/lower an AudioSegment's pitch by `semitones`, keeping duration and tempo."""
+    import librosa
+
+    samples = np.array(audio.get_array_of_samples()).astype(np.float32)
+    channels = audio.channels
+    if channels > 1:
+        samples = samples.reshape((-1, channels)).T
+    samples /= 1 << (8 * audio.sample_width - 1)
+
+    shifted = librosa.effects.pitch_shift(samples, sr=audio.frame_rate, n_steps=semitones)
+
+    shifted = np.clip(shifted, -1.0, 1.0)
+    shifted = (shifted * (1 << (8 * audio.sample_width - 1))).astype(np.int16)
+    if channels > 1:
+        shifted = shifted.T.flatten()
+
+    return audio._spawn(shifted.tobytes())
 
 
 def find_recording(letter):
@@ -53,6 +74,7 @@ def clean_recording(path):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--only", help="comma-separated letters to apply, e.g. B,G (default: all with a recording present)")
+    p.add_argument("--pitch-shift", type=float, default=0.0, help="semitones to raise (positive) or lower (negative) the voice, e.g. 5 for a more female-sounding pitch")
     args = p.parse_args()
 
     chars = {c["letter"] for c in load_characters()}
@@ -68,6 +90,9 @@ def main():
     print(f"Applying {len(todo)} recording(s): {', '.join(L for L, _ in todo)}")
     for L, rec in todo:
         audio = clean_recording(rec)
+        if args.pitch_shift:
+            audio = pitch_shift(audio, args.pitch_shift)
+            audio = audio.apply_gain(TARGET_DBFS - audio.dBFS)
         out_path = VOICE_DIR / f"{L}-intro.mp3"
         audio.export(out_path, format="mp3")
         print(f"  {out_path.name}  <-  {rec.name}  ({len(audio) / 1000:.1f}s)")
