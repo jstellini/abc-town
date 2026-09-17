@@ -48,7 +48,7 @@ const ALL_LETTERS = CHARACTERS.map(c => c.letter);
 // splitting a stroke here changes how many pieces the child assembles.
 const LETTER_STROKES = {
   A: ['M20 90 L50 12', 'M50 12 L80 90', 'M32 62 H68'],
-  B: ['M25 12 V90', 'M25 12 H54 A19 19 0 0 1 54 50 H25', 'M25 50 H58 A20 20 0 0 1 58 90 H25'],
+  B: ['M25 12 V90', 'M25 12 H58.5 A19.5 19.5 0 0 1 58.5 51 H25', 'M25 51 H58.5 A19.5 19.5 0 0 1 58.5 90 H25'],
   C: ['M78 29 A34 34 0 0 0 18 51', 'M18 51 A34 34 0 0 0 78 73'],
   D: ['M25 12 V90', 'M25 12 H46 A39 39 0 0 1 46 90 H25'],
   E: ['M25 12 V90', 'M25 12 H78', 'M25 51 H68', 'M25 90 H78'],
