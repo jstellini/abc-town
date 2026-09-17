@@ -272,11 +272,10 @@ const Games = (() => {
   // ---------- Game 4: Build a letter ----------
   // The letter's strokes are scattered; drag each onto the grey ghost to assemble it.
   function buildGame(ch, onDone) {
-    const L = ch.letter, strokes = LETTER_STROKES[L];
-    const el = area(); el.className = 'game-area build';
-    // Uppercase whatever the case mode says: LETTER_STROKES only has uppercase
-    // paths. Lowercase strokes are still to come.
-    setPrompt('Build the letter', L, ch.color, L); setStars(0, strokes.length);
+    // One letter on screen, so mixed mode just picks a form for this round.
+    const L = ch.letter, form = Case.glyph(L), strokes = LETTER_STROKES[form];
+    const el = area(); el.className = 'game-area build' + (form === L ? '' : ' lower');
+    setPrompt('Build the letter', L, ch.color, form); setStars(0, strokes.length);
     const say = () => Voice.say(`Let's build the letter ${L}! Put the pieces together!`, { key: `${L}-build` });
     say(); $('#game-target').onclick = say;
 
@@ -545,12 +544,11 @@ const Games = (() => {
   // ---------- Game 7: Paint the letter ----------
   // A big outlined letter with dots or stripes inside; pick a paint pot, tap (or swipe) a region.
   function paintGame(ch, onDone) {
-    const L = ch.letter;
+    // One letter on screen, so mixed mode just picks a form for this round.
+    const L = ch.letter, form = Case.glyph(L);
     let GOAL = 5;
     const el = area(); el.className = 'game-area paint';
-    // Uppercase whatever the case mode says: the glyph layout below is tuned to
-    // caps, and descenders (g, j, p, q, y) would fall out of the box. Still to come.
-    setPrompt('Paint the letter', L, ch.color, L); setStars(0, GOAL);
+    setPrompt('Paint the letter', L, ch.color, form); setStars(0, GOAL);
     const say = () => Voice.say(`Let's paint the letter ${L}! Tap a colour, then tap the letter!`, { key: `${L}-paint` });
     say(); $('#game-target').onclick = say;
 
@@ -560,17 +558,25 @@ const Games = (() => {
       for (let k = -4; k < 12; k++) shapes.push(`<rect class="region" x="-60" y="${k * 13}" width="220" height="6.5" transform="rotate(-35 50 50)"/>`);
     } else {
       const step = pattern === 'dots' ? 14 : 22, r = pattern === 'dots' ? 4.5 : 8;
-      for (let y = 12; y < 95; y += step) for (let x = 8; x < 95; x += step) shapes.push(`<circle class="region" cx="${x + rand(-3, 3)}" cy="${y + rand(-3, 3)}" r="${r + rand(-1, 1)}"/>`);
+      for (let y = 4; y < 99; y += step) for (let x = 4; x < 99; x += step) shapes.push(`<circle class="region" cx="${x + rand(-3, 3)}" cy="${y + rand(-3, 3)}" r="${r + rand(-1, 1)}"/>`);
     }
-    const glyph = `x="50" y="86" text-anchor="middle" font-size="96"`;
+    const glyph = `x="50" y="50" text-anchor="middle" font-size="90"`;
     el.innerHTML = `<div class="pots">${LETTER_COLORS.map((c, i) => `<button class="pot${i ? '' : ' sel'}" style="--c:${c}" aria-label="paint"></button>`).join('')}</div>
       <div class="canvas"><svg viewBox="0 0 100 100">
-        <defs><clipPath id="paint-clip"><text ${glyph}>${L}</text></clipPath></defs>
+        <defs><clipPath id="paint-clip"><text ${glyph}>${form}</text></clipPath></defs>
         <g clip-path="url(#paint-clip)"><rect class="region body" x="0" y="0" width="100" height="100"/>${shapes.join('')}</g>
-        <text class="outline" ${glyph}>${L}</text>
+        <text class="outline" ${glyph}>${form}</text>
       </svg></div>
       <button class="paint-done hidden" aria-label="Done">✓</button>`;
     const svg = el.querySelector('svg');
+
+    // Fit whatever glyph the font drew into the box rather than trusting a fixed
+    // baseline: lowercase sits higher and g/j/p/q/y hang below it. Measuring also
+    // means a small letter like 'o' is scaled up to the same paintable area as 'A'.
+    const outline = el.querySelector('text.outline'), bb = outline.getBBox();
+    const s = Math.min(86 / bb.width, 86 / bb.height);
+    const fit = `translate(${50 - s * (bb.x + bb.width / 2)} ${50 - s * (bb.y + bb.height / 2)}) scale(${s})`;
+    el.querySelectorAll('svg text').forEach(t => t.setAttribute('transform', fit));
 
     // Drop pattern pieces that fall entirely outside the letter.
     el.querySelectorAll('.region:not(.body)').forEach(s => {
