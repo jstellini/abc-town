@@ -45,10 +45,18 @@ def load_characters():
     return chars
 
 
+def load_train_words():
+    """The three-letter words the town train spells (TRAIN_WORDS in js/data.js)."""
+    text = DATA_JS.read_text(encoding="utf-8")
+    block = text.split("const TRAIN_WORDS = [", 1)[1].split("];", 1)[0]
+    return re.findall(r"'([a-z]+)'", block)
+
+
 def build_lines(chars):
     """Returns a list of (key, text) — must match every Voice.say() call site
-    in js/app.js and js/games.js."""
+    in js/app.js, js/games.js and js/town.js."""
     lines = [("welcome", WELCOME_TEXT), ("monster-yuck", "Yuck! Not that one!")]
+    lines += [(f"word-{w}", f"{w.capitalize()}!") for w in load_train_words()]
     for c in chars:
         L, name, sound = c["letter"], c["name"], c["sound"]
         lines += [

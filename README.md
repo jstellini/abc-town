@@ -86,8 +86,8 @@ Paint → Monster, advancing two steps per play), then finishes with Build-a-Let
   leaps after a butterfly before hopping back for another nap; the **balloon cart** lets one balloon
   go – it floats up carrying a letter (which it says) and pops at the top.
   In the park: the **ferris wheel** spins fast with flashing lights; the **station** bell brings the
-  train chugging right across the whole town (everyone waves 🚂) – its three carriages carry
-  letters, read out one by one as it rolls in; the **swing** swings high;
+  train chugging right across the whole town (everyone waves 🚂) – its three carriages spell a
+  word (C‑A‑T…) read out letter by letter, then the word itself, which the station board shows; the **swing** swings high;
   the **slide** calls the nearest friend over to climb up and whoosh down; the **ice-cream van**
   plays its jingle, opens the hatch and floats out ice creams; the **rocket** counts down
   3‑2‑1, blasts off and floats back down under a parachute; the **sandpit** builds a sandcastle
@@ -156,6 +156,8 @@ The setting is a grown-up's preference rather than progress, so resetting progre
   comes last, and twice in mixed mode – see `startGames`). The rotation position is stored with
   progress, so resetting progress restarts it. `Games.play` takes an optional `{ form }` to pin
   Build to a particular case; without it the game follows the case mode.
+- **Train words** – `TRAIN_WORDS` in `js/data.js`. Adding one needs its voice clip: run
+  `python tools/generate_voice.py --missing`.
 - **Town behaviour** – `js/town.js`: `GROUND_TOP/BOT` (where characters can stand),
   `convoDist()` (how close they must be to chat), `roamTarget()` (how far they wander), and the
   `react()` switch for tap animations. The town is `.town-stage { width: 300% }` in `css/style.css`;

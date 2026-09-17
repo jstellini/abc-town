@@ -112,3 +112,12 @@ const LETTER_STROKES = {
   y: ['M32 42 L52 80', 'M68 42 L44 94'],
   z: ['M32 42 H68', 'M68 42 L32 80', 'M32 80 H68'],
 };
+
+// Three-letter words the town train spells out on its carriages (see Town startTrain).
+// Each has a "word-<word>" voice clip; tools/generate_voice.py reads this list.
+const TRAIN_WORDS = [
+  'cat', 'dog', 'sun', 'hat', 'bus', 'cup', 'pig', 'bed', 'box', 'jam', 'key', 'egg', 'fox', 'hen',
+  'bug', 'van', 'map', 'mud', 'pen', 'zip', 'yak', 'web', 'kid', 'jet', 'owl', 'ant', 'toy', 'car',
+  'cow', 'bat', 'log', 'nut', 'red', 'fan', 'lip', 'tub', 'wig', 'zoo', 'six', 'vet', 'ice', 'arm',
+  'leg', 'hug', 'mop', 'pot', 'bee', 'sea', 'sky', 'run',
+];

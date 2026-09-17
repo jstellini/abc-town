@@ -546,10 +546,22 @@ const Town = (() => {
       train.classList.add('running');
       townies.forEach(t => t.waved = false);
       Sfx.whistle();
-      // Three different letters ride the carriages this trip; each is read out as it comes into view.
-      const picks = CHARACTERS.slice().sort(() => Math.random() - 0.5).slice(0, 3);
+      // The carriages spell a three-letter word this trip: each letter is read out as it comes
+      // into view, then the whole word – which the station board shows too.
+      const word = TRAIN_WORDS[Math.floor(Math.random() * TRAIN_WORDS.length)];
+      const picks = [...word.toUpperCase()].map(L => CHARACTERS.find(c => c.letter === L));
       train.querySelectorAll('.carriage span').forEach((sp, i) => { sp.textContent = picks[i].letter; sp.style.setProperty('--l', picks[i].color); });
-      picks.forEach((ch, i) => setTimeout(() => { if (running && train.classList.contains('running')) Voice.say(`${ch.letter}!`, { key: `${ch.letter}-tick` }); }, 1300 + i * 900));
+      const board = $('#station .board');
+      board.textContent = `🚂 ${word.toUpperCase()}`;
+      const onTrip = () => running && train.classList.contains('running');
+      picks.forEach((ch, i) => setTimeout(() => { if (onTrip()) Voice.say(`${ch.letter}!`, { key: `${ch.letter}-tick` }); }, 1000 + i * 700));
+      setTimeout(() => {
+        if (!onTrip()) return;
+        Voice.say(`${word}!`, { key: `word-${word}` });
+        replay(board, 'pop');
+        const r = stageRect(train);
+        townies.forEach(t => { if (free(t) && Math.abs(t.x - r.cx) < viewW() * 0.6) showBubble(t, word + '!', 1600); });
+      }, 1000 + 3 * 700 + 200);
       const chimney = train.querySelector('.chimney');
       const puffs = setInterval(() => {
         if (!running) return;
@@ -563,7 +575,7 @@ const Town = (() => {
         Sfx.puff();
       }, 380);
       [7000, 14000].forEach(ms => setTimeout(() => { if (running) Sfx.whistle(); }, ms));
-      const done = () => { train.classList.remove('running'); clearInterval(puffs); };
+      const done = () => { train.classList.remove('running'); clearInterval(puffs); board.textContent = '🚂 ABC'; };
       train.addEventListener('animationend', done, { once: true });
       setTimeout(done, 24000);   // in case the animation never finishes (backgrounded tab)
     }

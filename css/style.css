@@ -1179,6 +1179,8 @@ img { -webkit-user-drag: none; user-select: none; }
 .station .clock::before { height: 1vh; transform: rotate(45deg); }
 .station .clock::after { height: .8vh; transform: rotate(-90deg); }
 .station .board { position: absolute; right: 8%; top: 64%; padding: .2vh .6vh; background: #8d5524; color: #fff; font-size: 1.7vh; font-weight: 700; line-height: 1.2; border-radius: .4vh; white-space: nowrap; }
+.station .board.pop { animation: board-pop .6s cubic-bezier(.34,1.56,.64,1); }
+@keyframes board-pop { 0% { transform: scale(1); } 40% { transform: scale(1.4); } 100% { transform: scale(1); } }
 .station .door { position: absolute; right: 44%; bottom: 0; width: 14%; height: 40%; background: #8d5524; border-radius: 1.5vh 1.5vh 0 0; }
 
 .swing { left: 69%; top: 55%; width: 16vh; height: 15vh; cursor: pointer; }
