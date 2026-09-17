@@ -16,6 +16,23 @@ writes straight to `assets/voice/{LETTER}-intro.mp3`. Nothing else in the
 game changes — every other line (game prompts, "well done", reveals) still
 uses the TTS voice as before.
 
+## Recording all 26 in one take instead
+
+You don't have to record 26 separate files. Record the whole alphabet in one
+continuous take, pausing about 1.5-2 seconds of silence between each letter
+so the gaps are easy to detect automatically, then run:
+
+```
+python tools/split_intro_recording.py path/to/your_take.m4a
+```
+
+It finds 26 silence-separated chunks in order and writes them as
+`tools/recordings/A.wav` .. `Z.wav`. If it finds the wrong number of chunks
+it won't write anything — it prints the chunks it found with timestamps so
+you can lengthen a pause that got swallowed, or re-run with
+`--silence-thresh`/`--min-silence-ms` tweaked, then try again. Once it
+reports exactly 26, run `apply_intro_recordings.py` as usual.
+
 ## What to say, per letter
 
 Read the sound part (`buh`, `kuh`, etc.) as an actual sound, not as if
