@@ -123,6 +123,21 @@ const Town = (() => {
     el.addEventListener('animationend', () => el.remove());
   }
 
+  const randomChar = () => CHARACTERS[Math.floor(Math.random() * CHARACTERS.length)];
+  // A letter card pops out of the scenery at a point (stage coordinates) and says its name –
+  // the town's little reading moments (doorways, the cow, the post box's cousin).
+  function popLetter(sx, sy, z, ch = randomChar()) {
+    const card = document.createElement('div');
+    card.className = 'letter-pop';
+    card.style.cssText = `left:${sx}px; top:${sy}px; --c:${ch.color}; z-index:${z}`;
+    card.textContent = ch.letter;
+    stage.appendChild(card);
+    card.addEventListener('animationend', () => card.remove());
+    setTimeout(() => card.remove(), 3000);
+    Voice.say(`${ch.letter}!`, { key: `${ch.letter}-tick` });
+    return ch;
+  }
+
   // Night falls: sun sets, moon and stars come out, windows glow, fireflies drift.
   function setNight(on) {
     if (night === on) return;
@@ -212,7 +227,7 @@ const Town = (() => {
       }
     });
 
-    // Houses: knock knock – lights come on, the door swings open, the house wiggles.
+    // Houses: knock knock – lights come on, the door swings open and a letter pops out to say hello.
     stage.querySelectorAll('.house').forEach(h => on(h, (e, el) => {
       replay(el, 'tapped');
       el.classList.toggle('lit');
@@ -220,6 +235,7 @@ const Town = (() => {
       if (el.classList.contains('lit')) setTimeout(Sfx.tap, 350);
       const c = centreOf(el);
       Fx.burst(c.x, c.y - 10, el.classList.contains('lit') ? '#fff176' : '#ffffff', 10);
+      setTimeout(() => { if (running) { const d = stageRect(el.querySelector('.door')); popLetter(d.cx, d.y, Math.round(stageRect(el).bottom) + 1); } }, 400);
     }));
 
     // The tower flag: each tap flies a new colour.
@@ -414,7 +430,8 @@ const Town = (() => {
       if (el.classList.contains('open')) return;
       el.classList.add('open');
       setTimeout(() => { if (running) Sfx.moo(); }, 500);
-      setTimeout(() => { if (running) Sfx.moo(); }, 2300);
+      setTimeout(() => { if (running) { const h = stageRect(el.querySelector('.cow .head')); popLetter(h.cx, h.y - 8, Math.round(stageRect(el).bottom) + 1); } }, 1400);
+      setTimeout(() => { if (running) Sfx.moo(); }, 2600);
       setTimeout(() => el.classList.remove('open'), 4200);
       const r = stageRect(el);
       setTimeout(() => everyoneLaughs(r.cx, r.bottom, viewW() * 0.3), 900);
@@ -431,13 +448,24 @@ const Town = (() => {
       setTimeout(() => el.classList.remove('busy'), 3500);
     });
 
-    // Scarecrow: spins on its pole and startles two crows into the sky.
+    // Scarecrow: spins on its pole and startles two crows into the sky – and its sign comes
+    // round showing a new letter, which it reads out.
+    const sign = $('#scarecrow .sign');
+    const setSign = ch => { sign.textContent = ch.letter; sign.style.setProperty('--l', ch.color); return ch; };
+    setSign(randomChar());
     on($('#scarecrow'), (e, el) => {
       replay(el, 'tapped');
       Sfx.caw(); setTimeout(Sfx.whoosh, 200);
       const r = stageRect(el);
       sendBird(r.cx - 20, r.y - 10, false);
       setTimeout(() => { if (running) sendBird(r.cx + 20, r.y - 30, true); }, 250);
+      const next = randomChar();
+      setTimeout(() => { if (running) setSign(next); }, 450);                 // swapped while the sign is edge-on
+      setTimeout(() => {
+        if (!running) return;
+        Voice.say(`${next.letter}!`, { key: `${next.letter}-tick` });
+        const c = centreOf(sign); Fx.burst(c.x, c.y, next.color, 12); Sfx.ding();
+      }, 900);
     });
 
     // Sheep: baas and leaps over the fence (and back again next time). At night, watching a
@@ -518,6 +546,10 @@ const Town = (() => {
       train.classList.add('running');
       townies.forEach(t => t.waved = false);
       Sfx.whistle();
+      // Three different letters ride the carriages this trip; each is read out as it comes into view.
+      const picks = CHARACTERS.slice().sort(() => Math.random() - 0.5).slice(0, 3);
+      train.querySelectorAll('.carriage span').forEach((sp, i) => { sp.textContent = picks[i].letter; sp.style.setProperty('--l', picks[i].color); });
+      picks.forEach((ch, i) => setTimeout(() => { if (running && train.classList.contains('running')) Voice.say(`${ch.letter}!`, { key: `${ch.letter}-tick` }); }, 1300 + i * 900));
       const chimney = train.querySelector('.chimney');
       const puffs = setInterval(() => {
         if (!running) return;

@@ -68,11 +68,12 @@ Paint → Monster, advancing two steps per play), then finishes with Build-a-Let
   scrolls along. A newly unlocked friend arrives in the square.
   The scenery reacts too. Everywhere: the **sun** sets into night (moon, stars, lit windows,
   fireflies, sleepy characters – tap the **moon** for sunrise); **houses** light up and open their
-  door; **trees** drop leaves; **clouds** rain, followed by a rainbow; the empty **sky** sends a
+  door – knock knock, a letter pops out and says its name; **trees** drop leaves; **clouds** rain, followed by a rainbow; the empty **sky** sends a
   bird by day or a shooting star by night; the **hot-air balloon** drops confetti.
-  On the farm: the **barn** doors swing open and the cow comes out to moo; the **duck pond**'s
+  On the farm: the **barn** doors swing open and the cow comes out and moos a letter; the **duck pond**'s
   duck flaps and quacks, a frog hops across and a fish jumps; the **veggie patch** has a rabbit that
-  pops up, nibbles a carrot and dives back down; the **scarecrow** spins and startles two crows;
+  pops up, nibbles a carrot and dives back down; the **scarecrow** spins and startles two crows,
+  and its sign comes round showing a new letter, which it reads out;
   the **windmill** whirls and blows a gust; the **sheep** baas and leaps over its fence (and back
   next time – at night the friends nearby get sleepy watching); the **hens** flap and cluck, an
   egg rolls out, wobbles, cracks and a chick pops out; the **tractor** toots, puffs smoke and
@@ -85,7 +86,8 @@ Paint → Monster, advancing two steps per play), then finishes with Build-a-Let
   leaps after a butterfly before hopping back for another nap; the **balloon cart** lets one balloon
   go – it floats up carrying a letter (which it says) and pops at the top.
   In the park: the **ferris wheel** spins fast with flashing lights; the **station** bell brings the
-  train chugging right across the whole town (everyone waves 🚂); the **swing** swings high;
+  train chugging right across the whole town (everyone waves 🚂) – its three carriages carry
+  letters, read out one by one as it rolls in; the **swing** swings high;
   the **slide** calls the nearest friend over to climb up and whoosh down; the **ice-cream van**
   plays its jingle, opens the hatch and floats out ice creams; the **rocket** counts down
   3‑2‑1, blasts off and floats back down under a parachute; the **sandpit** builds a sandcastle
