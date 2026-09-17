@@ -274,6 +274,42 @@ const Games = (() => {
     el.innerHTML = `<div class="ghost" style="width:${S}px;height:${S}px;transform:translate3d(${hx}px,${hy}px,0)"><svg viewBox="0 0 100 100">${strokes.map(d => `<path d="${d}"/>`).join('')}</svg></div>`;
     const ghost = el.querySelector('.ghost'), ghostPaths = Array.from(ghost.querySelectorAll('path'));
 
+    // Some letters repeat a stroke: E's top and bottom arms, H's two stems, Z's two bars.
+    // Those pieces are indistinguishable, so a piece may snap to ANY free slot whose stroke
+    // is the same shape as its own -- the letter comes out identical either way, and telling
+    // a child the bottom arm doesn't go on the bottom is just wrong.
+    // Shapes are compared as a run of sampled points, offset from the first, so only
+    // translation counts: X's and V's mirrored diagonals stay firmly non-swappable. The
+    // tolerance is a float-noise allowance and nothing more -- true twins score 0, while
+    // B's two bowls (5) and E's shorter middle arm (10) are near misses that must stay put,
+    // since dropping those in each other's slot would draw a visibly broken letter.
+    const SHAPE_TOL = 1.5;
+    const shapes = ghostPaths.map(path => {
+      const len = path.getTotalLength(), pts = [];
+      for (let s = 0; s <= 16; s++) { const q = path.getPointAtLength(len * s / 16); pts.push([q.x, q.y]); }
+      const norm = ps => ps.map(q => [q[0] - ps[0][0], q[1] - ps[0][1]]);
+      return { bb: path.getBBox(), pts: norm(pts), rev: norm([...pts].reverse()) };
+    });
+    // Paths can be drawn in either direction (M's stems run opposite ways), so try both.
+    function alike(a, b) {
+      const dev = pts => a.pts.reduce((m, q, n) => Math.max(m, Math.hypot(q[0] - pts[n][0], q[1] - pts[n][1])), 0);
+      return Math.min(dev(b.pts), dev(b.rev)) <= SHAPE_TOL;
+    }
+    const swaps = strokes.map((_, i) => strokes.map((_, j) => j).filter(j => alike(shapes[i], shapes[j])));
+    const filled = strokes.map(() => false);
+    // Where piece i's box must sit for its ink to land on slot j.
+    const slotX = (i, j) => hx + (shapes[j].bb.x - shapes[i].bb.x) * k;
+    const slotY = (i, j) => hy + (shapes[j].bb.y - shapes[i].bb.y) * k;
+    function nearestSlot(o) {
+      let best = -1, near = S * 0.15;
+      for (const j of swaps[o.i]) {
+        if (filled[j]) continue;
+        const d = Math.hypot(o.x - slotX(o.i, j), o.y - slotY(o.i, j));
+        if (d < near) { near = d; best = j; }
+      }
+      return best;
+    }
+
     // Free zones around the ghost letter (which spans roughly 12–90 of the 100 box).
     const zones = [
       { x: pad, y: pad, w: hx + S * 0.12 - pad * 2, h: H - pad * 2 },
@@ -293,10 +329,10 @@ const Games = (() => {
     }
 
     let placed = 0, running = true, items = [];
-    function snap(o) {
-      o.placed = true; placed++;
-      o.el.classList.add('placed'); ghostPaths[o.i].classList.add('hidden');
-      slideTo(o, hx, hy, 200);
+    function snap(o, j) {
+      o.placed = true; filled[j] = true; placed++;
+      o.el.classList.add('placed'); ghostPaths[j].classList.add('hidden');
+      slideTo(o, slotX(o.i, j), slotY(o.i, j), 200);
       Sfx.click(); Sfx.sparkle(); setStars(placed, strokes.length);
       const c = centre(o.el.querySelector('.ink')); Fx.burst(c.x, c.y, ch.color, 12);
       if (placed >= strokes.length) {
@@ -314,7 +350,7 @@ const Games = (() => {
       node.style.setProperty('--rot', rand(-14, 14) + 'deg');
       node.innerHTML = `<svg viewBox="0 0 100 100"><path class="hit" d="${d}"/><path class="ink" d="${d}"/></svg>`;
       el.appendChild(node);
-      const bb = node.querySelector('.ink').getBBox();
+      const bb = shapes[i].bb;
       const pw = (bb.width + 16) * k, ph = (bb.height + 16) * k, ox = (bb.x - 8) * k, oy = (bb.y - 8) * k;
       // Tilt around the stroke itself so a tilted piece still sits where its drop position says.
       node.querySelector('svg').style.transformOrigin = `${(bb.x + bb.width / 2) * k}px ${(bb.y + bb.height / 2) * k}px`;
@@ -329,7 +365,8 @@ const Games = (() => {
         onEnd() {
           node.classList.remove('dragging');
           if (!running) return;
-          if (Math.hypot(o.x - hx, o.y - hy) < S * 0.15) { snap(o); return; }
+          const slot = nearestSlot(o);
+          if (slot >= 0) { snap(o, slot); return; }
           // Keep the piece on screen wherever it was dropped.
           const nx = Math.max(-ox, Math.min(W - pw - ox, o.x)), ny = Math.max(-oy, Math.min(H - ph - oy, o.y));
           if (nx !== o.x || ny !== o.y) slideTo(o, nx, ny, 250);
