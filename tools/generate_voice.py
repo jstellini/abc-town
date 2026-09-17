@@ -59,6 +59,7 @@ def build_lines(chars):
         ("welcome", WELCOME_TEXT),
         ("monster-yuck", "Yuck! Not that one!"),
         ("words-hub", "Welcome to Word Town! Pick a game!"),
+        ("words-build", "Build the word!"),
         ("words-try", "Not quite. Try again!"),
         ("words-done", "Brilliant! You did it!"),
         ("words-locked", "Collect all the letters first, then Word Town will open!"),

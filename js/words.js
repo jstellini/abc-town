@@ -21,6 +21,7 @@ const Words = (() => {
   // The hub. Adding a game is one entry here plus its function.
   const GAMES = [
     { id: 'starts', title: 'Who starts with…?', icon: '🔤', make: startsGame },
+    { id: 'build', title: 'Build the word', icon: '🧩', make: buildWordGame },
   ];
 
   function openHub() {
@@ -48,6 +49,11 @@ const Words = (() => {
   function stop() {
     if (active) { active.stop(); active = null; }
     $('#word-area').innerHTML = '';
+    // Reset the header card here rather than in each game, so one game can't
+    // leave its styling behind for the next.
+    const t = $('#word-target');
+    t.className = 'target-card';
+    t.onclick = null;
   }
 
   function setStars(n, total) {
@@ -143,6 +149,144 @@ const Words = (() => {
 
     ask();
     return { stop() { running = false; clearTimeout(timer); $('#word-target').onclick = null; } };
+  }
+
+  // ---------- Game 2: Build the word ----------
+  // A spoken three-letter word, three slots ghosting it, and a tray of letter
+  // tiles. Tap a tile and it flies into the next empty slot.
+  //
+  // Every clip this game speaks already exists: {L}-tick for each letter as it
+  // lands and word-<word> for the finished word, the same pair the town train
+  // says (Town.startTrain). Only the "Build the word!" prompt is new.
+  function buildWordGame(onDone) {
+    const ROUNDS = 3;
+    const el = $('#word-area');
+    const words = shuffle(TRAIN_WORDS.slice()).slice(0, ROUNDS);
+    let round = 0, running = true, timers = [];
+    // Voice.say shares one Audio element and pauses whatever is playing, so
+    // every delayed line goes through here and is cancelled together.
+    const later = (fn, ms) => { const t = setTimeout(() => { if (running) fn(); }, ms); timers.push(t); return t; };
+    const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
+
+    function ask() {
+      const word = words[round];
+      const letters = [...word.toUpperCase()];
+      // Words are written lowercase, so a mixed-mode ghost never reads "cAt" –
+      // the mixing happens in the tray, and Case.same decides what fits.
+      const ghosts = Case.get() === 'mixed' ? letters.map(L => L.toLowerCase()) : letters.map(L => Case.glyph(L));
+      // A distractor sharing a letter with the word would be silently correct.
+      const spare = shuffle(ALL_LETTERS.filter(L => !letters.includes(L))).slice(0, 2);
+      const all = [...letters, ...spare];
+      // Case.glyphs gives the mode's own even upper/lower split; we want that
+      // pattern, applied to each tile's own letter.
+      const lower = Case.glyphs('A', all.length).map(g => g === 'a');
+      const tray = shuffle(all.map((L, i) => ({ letter: L, glyph: lower[i] ? L.toLowerCase() : L, spent: false })));
+
+      let next = 0, wrong = 0, busy = false;
+      $('#word-prompt').textContent = 'Build the word';
+      setStars(round, ROUNDS);
+      const card = $('#word-target');
+      card.className = 'target-card word';
+      card.textContent = ghosts.join('');
+      card.style.setProperty('--c', CHAR_BY_LETTER[letters[0]].color);
+      replay(card, 'pulse');
+      // A three-year-old can't read the ghosts, so the word itself has to be
+      // said – the prompt alone doesn't state the task.
+      const say = () => { Voice.say('Build the word!', { key: 'words-build' }); later(() => Voice.say(`${word}!`, { key: `word-${word}` }), 1200); };
+      card.onclick = say;
+      say();
+
+      el.className = 'word-area build';
+      el.innerHTML = `<div class="word-slots">${ghosts.map((g, i) => `<div class="wslot${i === 0 ? ' next' : ''}"><span class="wghost">${g}</span></div>`).join('')}</div>
+        <div class="word-tray"></div>`;
+      const slots = Array.from(el.querySelectorAll('.wslot'));
+      const trayEl = el.querySelector('.word-tray');
+
+      tray.forEach((tile, i) => {
+        const b = document.createElement('button');
+        b.className = 'wtile';
+        b.textContent = tile.glyph;
+        b.style.setProperty('--c', CHAR_BY_LETTER[tile.letter].color);
+        b.style.animationDelay = (i * 70) + 'ms';
+        b.addEventListener('pointerdown', e => { e.preventDefault(); tap(tile, b); });
+        tile.el = b;
+        trayEl.appendChild(b);
+      });
+
+      function tap(tile, node) {
+        // next >= slots.length once the word is finished: the leftover tiles stay
+        // on screen for a couple of seconds and a child will absolutely tap them.
+        if (!running || busy || tile.spent || next >= slots.length) return;
+        if (Case.same(tile.glyph, ghosts[next])) { place(tile, node); return; }
+        // A letter that IS in the word, just not this slot, isn't really a
+        // mistake – nudge the cursor rather than counting it against them.
+        if (letters.includes(tile.letter)) { replay(slots[next], 'nudge'); return; }
+        wrong++;
+        Sfx.boing();
+        replay(node, 'wobble');
+        if (wrong === 1) Voice.say('Not quite. Try again!', { key: 'words-try' });
+        if (wrong >= 2) tray.forEach(t => { if (!t.spent && Case.same(t.glyph, ghosts[next])) t.el.classList.add('hint'); });
+      }
+
+      function place(tile, node) {
+        busy = true;
+        tile.spent = true;
+        const slot = slots[next];
+        // Fly the tile to its slot, then let the slot's own glyph show through –
+        // the finished word always reads cleanly, whichever case was tapped.
+        const from = node.getBoundingClientRect(), to = slot.getBoundingClientRect();
+        const fly = node.cloneNode(true);
+        fly.className = 'wtile wfly';
+        fly.style.setProperty('--c', node.style.getPropertyValue('--c'));
+        fly.style.left = from.left + 'px'; fly.style.top = from.top + 'px';
+        fly.style.width = from.width + 'px'; fly.style.height = from.height + 'px';
+        document.body.appendChild(fly);
+        node.classList.add('spent');
+        tray.forEach(t => t.el.classList.remove('hint'));
+        requestAnimationFrame(() => {
+          fly.style.transform = `translate(${to.left + to.width / 2 - from.left - from.width / 2}px,${to.top + to.height / 2 - from.top - from.height / 2}px) scale(${to.height / from.height})`;
+        });
+        later(() => {
+          fly.remove();
+          slot.classList.add('filled');
+          slot.classList.remove('next');
+          slot.style.setProperty('--c', CHAR_BY_LETTER[tile.letter].color);
+          Sfx.click(); Sfx.sparkle();
+          Voice.say(`${tile.letter}!`, { key: `${tile.letter}-tick` });
+          next++;
+          busy = false;
+          if (next < slots.length) { slots[next].classList.add('next'); return; }
+          solved();
+        }, 360);
+      }
+
+      function solved() {
+        el.classList.add('done');
+        Sfx.correct();
+        const r = el.querySelector('.word-slots').getBoundingClientRect();
+        Fx.burst(r.left + r.width / 2, r.top + r.height / 2, CHAR_BY_LETTER[letters[0]].color, 26);
+        setStars(round + 1, ROUNDS);
+        // After the last {L}-tick, not racing it – they share one Audio element.
+        later(() => Voice.say(`${word}!`, { key: `word-${word}` }), 700);
+        round++;
+        later(() => (round >= ROUNDS ? win() : ask()), 2600);
+      }
+    }
+
+    function win() {
+      el.className = 'word-area done';
+      el.innerHTML = '';
+      $('#word-prompt').textContent = 'Word Town';
+      Sfx.fanfare(); Fx.confetti(70);
+      timers.push(setTimeout(() => Fx.confetti(50), 600));
+      Voice.say('Brilliant! You did it!', { key: 'words-done' });
+      // Tracked, not a bare setTimeout: backing out mid-fanfare must not then
+      // bounce the child to the hub from a game they already left.
+      timers.push(setTimeout(() => { running = false; onDone(); }, 2400));
+    }
+
+    ask();
+    return { stop() { running = false; clearTimers(); document.querySelectorAll('.wfly').forEach(n => n.remove()); } };
   }
 
   return { GAMES, openHub, play, stop };

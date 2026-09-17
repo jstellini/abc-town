@@ -125,6 +125,15 @@ opens it for testing.
 - **Who starts with…?** – a lineup of three or four friends and a target letter. Tap the one
   whose *name* starts with it. Four rounds, then confetti and back to the hub. A wrong tap
   wobbles; after two misses the right one glows.
+- **Build the word** – a three-letter word is spoken and shown as faint ghost letters in three
+  slots, with a tray of five tiles (the word's letters plus two others). Tap a tile and it flies
+  into the next slot, saying its letter; the finished word is read out. Three words, then back to
+  the hub. Tapping a letter that *is* in the word but isn't next just nudges the cursor rather
+  than counting as a miss — only a letter that isn't in the word at all does that.
+
+The words come from `TRAIN_WORDS` in `js/data.js` (the same 50 the town train spells), and every
+clip the second game speaks already existed: `{L}-tick` per letter and `word-<word>` for the whole
+word, exactly as `Town.startTrain` says them.
 
 Word games always ask about **spelling** ("which name starts with the letter X"), never about
 sound. Three characters make a sound-framed question wrong: Xylophone starts with X but says
