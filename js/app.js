@@ -20,17 +20,24 @@ const App = (() => {
   function show(name, opts) {
     $$('.screen').forEach(s => s.classList.toggle('active', s.id === 'screen-' + name));
     if (name !== 'game') Games.stop();
+    if (name !== 'wordgame') Words.stop();
     Fx.clear();
     if (name === 'town') Town.enter(opts); else Town.leave();
     if (name === 'home') buildHome();
+    if (name === 'words') Words.openHub();
     if (name !== 'intro' && name !== 'reveal') Voice.stop();
   }
 
   // ---------- home: the letter grid ----------
   let homeKey = null;
+  const ALL_COLLECTED = () => unlockedCount() >= CHARACTERS.length;
   function buildHome() {
     const grid = $('#letter-grid');
     $('#town-count').textContent = unlockedCount();
+    // Above the homeKey early return – the lock has to track the count even on
+    // visits where the tiles themselves don't need rebuilding.
+    $('#btn-words').classList.toggle('locked', !ALL_COLLECTED());
+    $('#words-lock').textContent = ALL_COLLECTED() ? '' : `${unlockedCount()}/${CHARACTERS.length}`;
     // Only rebuild the tiles when the collection changed – re-creating 26 images on every visit
     // makes Safari re-decode them and they can paint late.
     const key = CHARACTERS.map(c => isUnlocked(c.letter) ? c.letter : '.').join('');
@@ -191,6 +198,11 @@ const App = (() => {
     });
     $$('[data-go]').forEach(b => b.addEventListener('click', () => { Sfx.tap(); show(b.dataset.go); }));
     $('#btn-town').addEventListener('click', () => { Sfx.tap(); show('town'); });
+    // Left enabled while locked: saying what's still needed beats a dead button.
+    $('#btn-words').addEventListener('click', () => {
+      if (!ALL_COLLECTED()) { Sfx.boing(); Voice.say('Collect all the letters first, then Word Town will open!', { key: 'words-locked' }); return; }
+      Sfx.tap(); show('words');
+    });
     $('#btn-play').addEventListener('click', () => { Sfx.tap(); startGames(); });
     $('#intro-card').addEventListener('click', () => { Sfx.tap(); Voice.say(introPhrase(current), { key: `${current.letter}-intro` }); });
     $('#intro-char').addEventListener('click', () => { Sfx.boing(); $('#intro-char').classList.remove('wobble'); void $('#intro-char').offsetWidth; $('#intro-char').classList.add('wobble'); });

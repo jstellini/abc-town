@@ -55,7 +55,14 @@ def load_train_words():
 def build_lines(chars):
     """Returns a list of (key, text) — must match every Voice.say() call site
     in js/app.js, js/games.js and js/town.js."""
-    lines = [("welcome", WELCOME_TEXT), ("monster-yuck", "Yuck! Not that one!")]
+    lines = [
+        ("welcome", WELCOME_TEXT),
+        ("monster-yuck", "Yuck! Not that one!"),
+        ("words-hub", "Welcome to Word Town! Pick a game!"),
+        ("words-try", "Not quite. Try again!"),
+        ("words-done", "Brilliant! You did it!"),
+        ("words-locked", "Collect all the letters first, then Word Town will open!"),
+    ]
     lines += [(f"word-{w}", f"{w.capitalize()}!") for w in load_train_words()]
     for c in chars:
         L, name, sound = c["letter"], c["name"], c["sound"]
@@ -69,6 +76,10 @@ def build_lines(chars):
             (f"{L}-ice", f"The letters are frozen! Tap the ice to smash it and find the letter {L}!"),
             (f"{L}-paint", f"Let's paint the letter {L}! Tap a colour, then tap the letter!"),
             (f"{L}-monster", f"The monster is hungry! Feed him the letter {L}!"),
+            # Word Town asks about SPELLING, never sound – X says /z/, I is a long
+            # i and Q is 'kwuh', so "starts with the letter X" is the only wording
+            # that stays true for all 26.
+            (f"{L}-starts", f"Which name starts with the letter {L}?"),
             (f"{L}-tick", f"{L}!"),
             (f"{L}-find-done", f"{L}! Well done!"),
             (f"{L}-pop-done", f"{L}! Hooray!"),

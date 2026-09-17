@@ -485,6 +485,45 @@ img { -webkit-user-drag: none; user-select: none; }
 .reveal-name { font-size: 9vh; font-weight: 700; color: #fff; text-shadow: 0 .6vh 0 rgba(0,0,0,.2); line-height: 1.1; }
 .reveal-btns { display: flex; gap: 3vw; margin-top: 2vh; }
 
+/* ---------- Word Town ---------- */
+.round-btn.locked { filter: grayscale(1); opacity: .55; }
+.round-btn.locked #words-lock { font-size: .7em; }
+#screen-words { background: linear-gradient(#cdeafe, #eaf6ff); }
+/* The home bar's title is white for the purple grid behind it; this bar is pale. */
+#screen-words .bar-title { color: #3b3f63; text-shadow: none; }
+.words-menu {
+  position: absolute; top: 11vh; left: 0; right: 0; bottom: 0;
+  display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 3vh 3vw; padding: 3vh 6vw;
+}
+.word-tile {
+  width: 34vh; height: 34vh; border-radius: 5vh; background: #fff; box-shadow: var(--shadow);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5vh;
+  animation: card-in .5s cubic-bezier(.34,1.56,.64,1) backwards; transition: transform .12s;
+}
+.word-tile:active { transform: scale(.95); }
+.word-tile-icon { font-size: 11vh; line-height: 1; }
+.word-tile-title { font-size: 3.4vh; font-weight: 700; color: #3b3f63; text-align: center; padding: 0 2vh; }
+
+#screen-wordgame { background: linear-gradient(#ffe9c2, #fff6e4); }
+.word-area {
+  position: absolute; top: 11vh; left: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: center; gap: 3vw; padding: 2vh 4vw;
+}
+.word-card {
+  flex: 0 1 26vh; max-width: 26vh; border-radius: 4vh; background: #fff; box-shadow: var(--shadow);
+  border: .8vh solid var(--c, #ff3b3b); padding: 2vh 1vh 1.5vh;
+  display: flex; flex-direction: column; align-items: center; gap: 1vh;
+  animation: card-in .5s cubic-bezier(.34,1.56,.64,1) backwards;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+}
+.word-card img { height: 22vh; pointer-events: none; }
+.word-name { font-family: var(--font-letter); font-size: 3.4vh; font-weight: 700; color: var(--c, #ff3b3b); line-height: 1; }
+.word-card:active { transform: scale(.96); }
+.word-card.wobble { animation: wobble .6s; }
+.word-card.hint { animation: hint 1s ease-in-out infinite; }
+.word-card.right { transform: scale(1.12); }
+.word-card.dim { opacity: .25; transform: scale(.9); }
+
 /* ---------- town ----------
    The town is three screens wide: farm | square | park. #town-view is the window; #town-stage
    (300% wide) slides left and right under it, with the hills and clouds sliding slower behind. */

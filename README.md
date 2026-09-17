@@ -115,6 +115,24 @@ back to back — four minigames rather than three.
 
 The setting is a grown-up's preference rather than progress, so resetting progress keeps it.
 
+### Word Town
+
+The 📖 button on the home screen opens **Word Town**, a hub of word games. It stays locked
+(greyed, showing `n/26`) until every character is collected — tapping it before then says
+what's still needed rather than doing nothing. The grown-ups panel's *Unlock everyone*
+opens it for testing.
+
+- **Who starts with…?** – a lineup of three or four friends and a target letter. Tap the one
+  whose *name* starts with it. Four rounds, then confetti and back to the hub. A wrong tap
+  wobbles; after two misses the right one glows.
+
+Word games always ask about **spelling** ("which name starts with the letter X"), never about
+sound. Three characters make a sound-framed question wrong: Xylophone starts with X but says
+/z/, Ice Cream is a long i rather than the short `ih` the letter game teaches, and Queen is
+`kwuh`. For the same reason nothing here plays a `{L}-intro` clip, which carries the phonic
+sound, and the lineup keeps same-sounding letters apart (C/K) and never pairs X with Z — the
+question is about spelling, but a child reasoning by ear shouldn't be punished for it.
+
 ## Tuning
 
 - **Phonics sounds** – `js/data.js`, the `sound` column. The text-to-speech engine says
@@ -158,6 +176,12 @@ The setting is a grown-up's preference rather than progress, so resetting progre
   Build to a particular case; without it the game follows the case mode.
 - **Train words** – `TRAIN_WORDS` in `js/data.js`. Adding one needs its voice clip: run
   `python tools/generate_voice.py --missing`.
+- **Word games** – `js/words.js`. `GAMES` at the top is the hub registry: adding a game is one
+  entry (`id`, `title`, `icon`, `make`) plus its function, and the menu builds itself. Each game
+  returns `{ stop() }` like the letter minigames do. The unlock gate is `ALL_COLLECTED()` in
+  `js/app.js`. New spoken lines go in `build_lines` in `tools/generate_voice.py`, then
+  `python tools/generate_voice.py --missing` (use `--missing`, not `--only`, which splits keys
+  on the first hyphen and would read `words-hub` as a letter).
 - **Town behaviour** – `js/town.js`: `GROUND_TOP/BOT` (where characters can stand),
   `convoDist()` (how close they must be to chat), `roamTarget()` (how far they wander), and the
   `react()` switch for tap animations. The town is `.town-stage { width: 300% }` in `css/style.css`;
@@ -197,6 +221,7 @@ js/audio.js         Web Audio sound effects + voice playback (recorded clips, TT
 js/fx.js            sparkle / confetti particles
 js/games.js         the eight minigames
 js/town.js          town square simulation, drag & tap
+js/words.js         Word Town: the word-game hub and its games
 js/app.js           screen flow, progress, grown-ups panel
 assets/voice/       recorded voice-over clips (mp3)
 assets/characters/  character art (svg, generated) + the original png cut-outs
