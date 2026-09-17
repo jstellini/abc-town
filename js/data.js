@@ -12,7 +12,7 @@ const LETTER_COLORS = ['#ff3b3b', '#ff8a00', '#ffc400', '#3ecf3e', '#2196f3', '#
 const CHARACTERS = [
   { letter: 'A', name: 'Apple',        file: 'apple',       sound: 'ah',   react: 'spin',      tag: '⭐' },
   { letter: 'B', name: 'Banana',       file: 'banana',      sound: 'buh',  react: 'slip',      tag: '🍌' },
-  { letter: 'C', name: 'Cookie',       file: 'cookie',      sound: 'kuh',  react: 'dash',      tag: '🍪' },
+  { letter: 'C', name: 'Cookie',       file: 'cookie',      sound: 'kuh',  react: 'hop',       tag: '🍪' },
   { letter: 'D', name: 'Drum',         file: 'drum',        sound: 'duh',  react: 'drum',      tag: '🥁' },
   { letter: 'E', name: 'Egg',          file: 'egg',         sound: 'eh',   react: 'cartwheel', tag: '💥' },
   { letter: 'F', name: 'Flower',       file: 'flower',      sound: 'fff',  react: 'wiggle',    tag: '🌸' },
@@ -34,7 +34,7 @@ const CHARACTERS = [
   { letter: 'V', name: 'Volcano',      file: 'volcano',     sound: 'vvv',  react: 'rumble',      tag: '🔥' },
   { letter: 'W', name: 'Water Bottle', file: 'waterbottle', sound: 'wuh',  react: 'dance',     tag: '💧' },
   { letter: 'X', name: 'Xylophone',    file: 'xylophone',   sound: 'ks',   react: 'music',     tag: '🎶' },
-  { letter: 'Y', name: 'Yo-yo',        file: 'yoyo',        sound: 'yuh',  react: 'boomerang', tag: '🪀' },
+  { letter: 'Y', name: 'Yo-yo',        file: 'yoyo',        sound: 'yuh',  react: 'sway',      tag: '🪀' },
   { letter: 'Z', name: 'Zipper',       file: 'zipper',      sound: 'zzz',  react: 'zip',       tag: '⚡' },
 ];
 

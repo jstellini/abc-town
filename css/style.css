@@ -609,6 +609,7 @@ img { -webkit-user-drag: none; user-select: none; }
 .townie .char.drumroll  { animation: drumroll .9s linear; }
 .townie .char.lean      { animation: lean 1s ease-in-out; }
 .townie .char.sneeze    { animation: sneeze 1.3s ease-in-out; }
+.townie .char.sway      { animation: sway 1.4s ease-in-out; }
 /* The letter floats just above the character's head. Each drawing starts a different distance
    down its 19vh box, so town.js measures it and sets --cap (see place()). Centred with a margin,
    not a translate, because the bob animation owns the badge's transform. */
@@ -702,6 +703,7 @@ img { -webkit-user-drag: none; user-select: none; }
 @keyframes flash { 0%, 100% { filter: drop-shadow(0 .8vh .6vh rgba(0,0,0,.2)); } 20%, 60% { filter: invert(1) hue-rotate(180deg) drop-shadow(0 0 2vh #9ff); } 40%, 80% { filter: brightness(2); } }
 @keyframes drumroll { 0%, 100% { transform: scale(1); } 10%, 30%, 50%, 70%, 90% { transform: scale(1.12, .9); } 20%, 40%, 60%, 80% { transform: scale(.94, 1.08); } }
 @keyframes lean { 0%, 100% { transform: rotate(0); } 15%, 85% { transform: rotate(18deg) scale(1.1, .95); } }
+@keyframes sway { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-7deg) translateY(-1vh); } 50% { transform: rotate(7deg) translateY(-1vh); } 80% { transform: rotate(-4deg); } }
 @keyframes sneeze { 0% { transform: rotate(0); } 15% { transform: rotate(-8deg) scale(1.02); } 30% { transform: rotate(-14deg) scale(1.08); } 45% { transform: rotate(-18deg) scale(1.15); } 50% { transform: rotate(25deg) scale(.9, 1.1) translateX(2vh); } 65% { transform: rotate(10deg); } 100% { transform: rotate(0); } }
 
 /* ---------- town: personality part animations ----------

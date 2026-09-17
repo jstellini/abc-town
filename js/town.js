@@ -802,7 +802,6 @@ const Town = (() => {
     // Say the character's letter, then its own sound effect plays over the animation.
     Voice.say(`${t.c.letter}!`, { key: `${t.c.letter}-tick` });
     const anim = (name, secs) => { t.busy = Math.max(t.busy, secs); t.img.classList.remove(name); void t.img.offsetWidth; t.img.classList.add(name); };
-    const H = stage.clientHeight, v = visible();
     // Personality animation on the character's own parts (drumsticks, rays, toast…).
     const actSecs = ACT_SECS[t.c.file] || 1.6;
     t.busy = actSecs;
@@ -838,16 +837,11 @@ const Town = (() => {
         if (near) { face(t, near.x); tween(t, near.x + (t.x < near.x ? -50 : 50), near.y, 0.8, { done: () => { showBubble(near, '💕', 1200); laugh(near); laugh(t); Sfx.giggle(); } }); }
         break;
       }
-      case 'dash': case 'zip': {
-        // Zoom off to the side of the screen and come straight back.
-        const dx = t.x < v.mid ? v.r - t.x - 60 : -(t.x - v.l - 60);
-        face(t, t.x + dx); anim('lean', 1.0); tween(t, t.x + dx, t.y, 1.0, { back: true }); Sfx.zip();
-        break;
-      }
-      case 'boomerang': {
-        face(t, v.mid); anim('spin', 1.4); tween(t, t.x < v.mid ? v.r + 60 : v.l - 60, t.y - H * 0.2, 1.4, { back: true }); Sfx.zip(); setTimeout(Sfx.zip, 700);
-        break;
-      }
+      // These three stay put: a happy hop for Cookie, a yo-yo-like swing for Yo-yo and a quick
+      // wriggle for Zipper. (They used to zoom across the screen, which read as erratic.)
+      case 'hop':       anim('laugh', 1.2); Sfx.giggle(); break;
+      case 'sway':      anim('sway', 1.4); Sfx.zip(); setTimeout(Sfx.zip, 700); break;
+      case 'zip':       anim('wiggle', 1.2); Sfx.zip(); break;
       case 'sneeze': {
         anim('sneeze', 1.4); Sfx.sneeze();
         setTimeout(() => { if (running) blowAway(t.x, t.y, viewW() * 0.32, viewW() * 0.22, t); }, 600);
