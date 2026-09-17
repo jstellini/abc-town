@@ -477,6 +477,9 @@ img { -webkit-user-drag: none; user-select: none; }
 .reveal-badge { font-size: 4.5vh; font-weight: 700; color: #fff; background: #ff4fa3; padding: .5vh 3vh; border-radius: 4vh; box-shadow: var(--shadow); transform: rotate(-4deg); animation: card-in .6s cubic-bezier(.34,1.56,.64,1); }
 .reveal-row { display: flex; align-items: center; gap: 5vw; }
 .reveal-letter { font-family: var(--font-letter); font-size: 34vh; font-weight: 700; line-height: 1; color: var(--c, #ff3b3b); text-shadow: 0 1.2vh 0 rgba(0,0,0,.15); animation: card-in .7s cubic-bezier(.34,1.56,.64,1); }
+/* Mixed mode shows big and little together, sharing a baseline. */
+.reveal-letter.two { display: flex; align-items: baseline; gap: .04em; font-size: 26vh; }
+.reveal-letter.two .low { font-size: .62em; }
 .reveal-char { height: 44vh; }
 .reveal-char img { height: 100%; filter: drop-shadow(0 10px 8px rgba(0,0,0,.22)); animation: reveal-in .9s cubic-bezier(.34,1.56,.64,1) backwards, bob 2s ease-in-out .9s infinite; }
 .reveal-name { font-size: 9vh; font-weight: 700; color: #fff; text-shadow: 0 .6vh 0 rgba(0,0,0,.2); line-height: 1.1; }
