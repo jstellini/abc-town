@@ -278,6 +278,8 @@ img { -webkit-user-drag: none; user-select: none; }
 .piece.in svg { transform: rotate(var(--rot)) scale(1); }
 .piece path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .piece path.ink { stroke: var(--c); stroke-width: 15; pointer-events: none; }
+/* Lowercase packs the same box into a 38-tall x-height, so the ink is thinner. */
+.build.lower .ghost path, .build.lower .piece path.ink { stroke-width: 12; }
 .piece path.hit { stroke: transparent; stroke-width: 36; pointer-events: stroke; }
 .piece.dragging svg { transform: rotate(0) scale(1.06); filter: drop-shadow(0 2.5vh 2.5vh rgba(0,0,0,.3)); }
 .piece.placed { pointer-events: none; z-index: 1; }

@@ -108,9 +108,8 @@ minigames show:
   child has to recognise that `A` and `a` are the same letter. Either form counts as
   correct, and the target card shows both.
 
-Build-a-Letter and Paint-the-Letter stay uppercase for now — their glyphs come from
-hand-drawn uppercase stroke paths and a caps-tuned layout. Lowercase for those two is
-still to come.
+Build-a-Letter and Paint-the-Letter only ever show one letter, so there is nothing to
+match against — in mixed mode they pick a form at random for that round.
 
 The setting is a grown-up's preference rather than progress, so resetting progress keeps it.
 
@@ -138,8 +137,16 @@ The setting is a grown-up's preference rather than progress, so resetting progre
   letter in mixed mode. Games track their target as the uppercase letter throughout and keep
   the uppercase voice keys (the letter is spoken the same either way), so adding a case mode
   needs no new recordings.
-- **Letter pieces** – `LETTER_STROKES` in `js/data.js`: each uppercase letter as SVG path strokes
-  in a 100×100 box. Split a stroke in two for more pieces, or merge for fewer.
+- **Letter pieces** – `LETTER_STROKES` in `js/data.js`: each letter as SVG path strokes in a
+  100×100 box, uppercase under `A`–`Z` and lowercase under `a`–`z`. Split a stroke in two for
+  more pieces, or merge for fewer. Uppercase runs y=12 (cap top) to y=90 (baseline); lowercase
+  has its own metrics so the letters line up with each other — y=10 ascender, y=42 x-height,
+  y=80 baseline, y=94 descender, round letters r=19 about y=61. Keep to those and a new letter
+  will sit with the rest. Lowercase ink is drawn thinner (`.build.lower` in the CSS), since the
+  uppercase width across a 38-tall x-height swallows the letter.
+- **Painted letter** – `paintGame` measures the glyph the font actually drew and scales it to
+  fill the canvas, so lowercase and descenders fit without per-letter tweaking, and a small
+  letter like `o` still gets as much paintable area as `A`.
 - **Which games play** – `OTHER_GAMES` in `js/app.js` is the rotation order (Build-a-Letter always
   comes last). The rotation position is stored with progress, so resetting progress restarts it.
 - **Town behaviour** – `js/town.js`: `GROUND_TOP/BOT` (where characters can stand),
