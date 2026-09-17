@@ -171,7 +171,7 @@ const Town = (() => {
     sceneryReady = true;
     setupPan();
     // Any one-shot scenery animation clears itself when done.
-    view.querySelectorAll('.sun, .moon, .house, .tree, .flowers, .fountain, .pond, .patch, .scarecrow, .barn, .station, .swing, .slide, .van').forEach(el =>
+    view.querySelectorAll('.sun, .moon, .house, .tree, .flowers, .fountain, .pond, .patch, .scarecrow, .barn, .station, .swing, .slide, .van, .pigpen, .bench, .balloons, .sandpit').forEach(el =>
       el.addEventListener('animationend', ev => { if (ev.target === el) el.classList.remove('tapped'); }));
 
     // Night sky decorations, made once.
@@ -324,6 +324,50 @@ const Town = (() => {
       if (night || el.classList.contains('on')) Fx.burst(c.x, c.y, '#fff8c0', 8);
     });
 
+    // Bench: the sleeping cat wakes with a stretch and a meow, leaps after a butterfly, then
+    // hops back up for another nap.
+    on($('#bench'), (e, el) => {
+      replay(el, 'tapped');
+      if (el.classList.contains('awake')) { Sfx.meow(); return; }
+      el.classList.add('awake');
+      const cat = el.querySelector('.cat'), r = stageRect(el);
+      setTimeout(() => { if (running) Sfx.meow(); }, 150);
+      setTimeout(() => { if (running) { const c = stageRect(cat); floatOut(c.cx + 20, c.y - 10, ['🦋'], 0); Sfx.chime(); } }, 1200);
+      setTimeout(() => { if (running) Sfx.boing(); }, 1900);
+      setTimeout(() => { if (running) Sfx.tap(); }, 2800);
+      setTimeout(() => { if (running) Sfx.meow(); }, 3100);
+      setTimeout(() => everyoneLaughs(r.cx, r.bottom, viewW() * 0.25), 2300);
+      setTimeout(() => el.classList.remove('awake'), 4000);
+    });
+
+    // Balloon cart: one balloon slips its string and floats up into the sky carrying a letter
+    // (which it says), then pops at the top. The bunch grows a new one.
+    on($('#balloons'), (e, el) => {
+      replay(el, 'tapped');
+      const spare = [...el.querySelectorAll('.bunch b:not(.gone)')];
+      Sfx.zip();
+      if (!spare.length) return;
+      const b = spare[Math.floor(Math.random() * spare.length)];
+      const r = stageRect(b);
+      b.classList.add('gone');
+      setTimeout(() => b.classList.remove('gone'), 2500);
+      const ch = CHARACTERS[Math.floor(Math.random() * CHARACTERS.length)];
+      const bl = document.createElement('div');
+      bl.className = 'loose-balloon';
+      bl.style.cssText = `left:${r.cx}px; top:${r.cy}px; --c:${ch.color}; z-index:${Math.round(stageRect(el).bottom) + 1}`;
+      bl.textContent = ch.letter;
+      stage.appendChild(bl);
+      setTimeout(() => Voice.say(`${ch.letter}!`, { key: `${ch.letter}-tick` }), 500);
+      const er = stageRect(el);
+      setTimeout(() => townies.forEach(t => { if (free(t) && Math.hypot(t.x - er.cx, t.y - er.bottom) < viewW() * 0.4) showBubble(t, '🎈', 1400); }), 700);
+      bl.addEventListener('animationend', () => {
+        const c = centreOf(bl); bl.remove();
+        if (!running) return;
+        Sfx.pop(); Fx.burst(c.x, c.y, ch.color, 18);
+      });
+      setTimeout(() => bl.remove(), 4000);
+    });
+
     // Hot-air balloon: swings and drops confetti.
     on(view.querySelector('.balloon-ride'), (e, el) => {
       const ride = el.querySelector('.ride');
@@ -394,6 +438,71 @@ const Town = (() => {
       const r = stageRect(el);
       sendBird(r.cx - 20, r.y - 10, false);
       setTimeout(() => { if (running) sendBird(r.cx + 20, r.y - 30, true); }, 250);
+    });
+
+    // Sheep: baas and leaps over the fence (and back again next time). At night, watching a
+    // sheep jump makes the friends nearby sleepy.
+    on($('#paddock'), (e, el) => {
+      Sfx.baa();
+      if (el.classList.contains('jumping')) return;
+      el.classList.add('jumping');
+      const r = stageRect(el), landX = el.classList.contains('over') ? r.x + r.w * 0.16 : r.x + r.w * 0.84;
+      setTimeout(() => { if (running) Sfx.boing(); }, 250);
+      setTimeout(() => {
+        if (!running) return;
+        Sfx.tap();
+        const sr = stage.getBoundingClientRect();
+        Fx.leaves(sr.left + landX, sr.top + r.bottom - 6, 8, ['#7ed957', '#3fa34d', '#a3e635']);
+        if (night) townies.forEach(t => { if (free(t) && Math.hypot(t.x - r.cx, t.y - r.cy) < viewW() * 0.4) showBubble(t, '💤', 1800); });
+        else everyoneLaughs(r.cx, r.bottom, viewW() * 0.25);
+      }, 1250);
+      setTimeout(() => { el.classList.toggle('over'); el.classList.remove('jumping'); }, 1450);
+    });
+
+    // Hen coop: the hens flap and cluck, an egg rolls out, wobbles, cracks – and a chick pops out.
+    on($('#coop'), (e, el) => {
+      replay(el, 'tapped');
+      Sfx.cluck();
+      if (el.classList.contains('laying')) return;
+      el.classList.add('laying');
+      const r = stageRect(el), c = centreOf(el);
+      setTimeout(() => { if (running) Sfx.pop(); }, 400);
+      [2000, 2400, 2800].forEach(ms => setTimeout(() => { if (running) Sfx.crack(); }, ms));
+      setTimeout(() => { if (running) { Sfx.pop(); Fx.burst(c.x + r.w * 0.32, c.y, '#fff8e7', 10); } }, 3050);
+      [3300, 3800, 4300].forEach(ms => setTimeout(() => { if (running) Sfx.chirp(); }, ms));
+      setTimeout(() => everyoneLaughs(r.cx, r.bottom, viewW() * 0.25), 3400);
+      setTimeout(() => el.classList.remove('laying'), 5100);
+    });
+
+    // Tractor: toots its horn, puffs smoke and chugs forward, then beeps as it reverses back.
+    on($('#tractor'), (e, el) => {
+      Sfx.honk();
+      if (el.classList.contains('driving')) return;
+      el.classList.add('driving');
+      setTimeout(() => { if (running) Sfx.chug(); }, 300);
+      const pipe = el.querySelector('.pipe');
+      const puffs = setInterval(() => { if (!running) return; const c = centreOf(pipe); Fx.burst(c.x, c.y - 14, '#cfd8dc', 4); }, 260);
+      [2500, 2900, 3300].forEach(ms => setTimeout(() => { if (running) Sfx.beep(); }, ms));
+      const r = stageRect(el);
+      setTimeout(() => everyoneLaughs(r.cx, r.bottom, viewW() * 0.3), 900);
+      const done = () => { el.classList.remove('driving'); clearInterval(puffs); };
+      el.addEventListener('animationend', ev => { if (ev.target === el) done(); }, { once: true });
+      setTimeout(done, 4600);
+    });
+
+    // Pig pen: the pig oinks and bounces in the mud – getting muddy, then shaking it off next time.
+    on($('#pigpen'), (e, el) => {
+      replay(el, 'tapped');
+      Sfx.oink();
+      const mud = el.querySelector('.mud'), c = centreOf(mud), r = stageRect(el);
+      setTimeout(() => { if (running) Sfx.oink(); }, 500);
+      [520, 940].forEach(ms => setTimeout(() => {
+        if (!running) return;
+        Sfx.splash();
+        Fx.burst(c.x, c.y - 6, '#8d5a2b', 12);
+        if (ms === 520) el.classList.toggle('muddy');
+      }, ms));
+      setTimeout(() => everyoneLaughs(r.cx, r.bottom, viewW() * 0.25), 900);
     });
 
     // ----- the park -----
@@ -517,6 +626,39 @@ const Town = (() => {
         const r = stageRect(el);
         everyoneLaughs(r.cx, r.bottom, viewW() * 0.4);
       }, liftoff + 4200 + 5500);
+    });
+
+    // Sandpit: a sandcastle builds itself tier by tier with a flag on top; tap again and it crumbles.
+    on($('#sandpit'), (e, el) => {
+      replay(el, 'tapped');
+      const castle = el.querySelector('.castle'), r = stageRect(el);
+      if (el.classList.toggle('built')) {
+        [0, 350, 700].forEach(ms => setTimeout(() => { if (running) Sfx.pop(); }, ms));
+        setTimeout(() => { if (running) { Sfx.chime(); const c = centreOf(castle); Fx.burst(c.x, c.y - 30, '#ffd93b', 14); } }, 1100);
+        setTimeout(() => everyoneLaughs(r.cx, r.bottom, viewW() * 0.25), 1300);
+      } else {
+        Sfx.whoosh();
+        const c = centreOf(castle);
+        Fx.burst(c.x, c.y + 10, '#e6c27a', 20);
+        setTimeout(() => townies.forEach(t => { if (free(t) && Math.hypot(t.x - r.cx, t.y - r.bottom) < viewW() * 0.25) showBubble(t, '!', 900); }), 200);
+      }
+    });
+
+    // See-saw: the plank flips and launches the teddy high into the air; it lands with a bounce.
+    on($('#seesaw'), (e, el) => {
+      Sfx.boing();
+      if (el.classList.contains('fly')) return;
+      el.classList.add('fly', 'tilt');
+      const rider = el.querySelector('.rider'), r = stageRect(el);
+      setTimeout(() => { if (running) Sfx.whee(); }, 200);
+      setTimeout(() => {
+        el.classList.remove('tilt');
+        if (!running) return;
+        Sfx.boing();
+        const c = centreOf(rider); Fx.burst(c.x, c.y, '#ffd93b', 10);
+        everyoneLaughs(r.cx, r.bottom, viewW() * 0.3);
+      }, 1750);
+      setTimeout(() => el.classList.remove('fly'), 2300);
     });
 
     // Everything standing on the ground is sorted by its base, like the characters.

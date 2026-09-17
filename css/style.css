@@ -1228,3 +1228,151 @@ img { -webkit-user-drag: none; user-select: none; }
 @keyframes rocket-launch { 0% { transform: translate(0, 0); } 8% { transform: translate(-.4vh, .4vh); } 16% { transform: translate(.4vh, .3vh); } 24% { transform: translate(-.3vh, 0); } 32% { transform: translate(.3vh, -1vh); } 100% { transform: translate(0, -150vh); } }
 @keyframes rocket-parachute { 0% { transform: translateY(-150vh) rotate(0); } 20% { transform: translateY(-110vh) rotate(7deg); } 45% { transform: translateY(-64vh) rotate(-7deg); } 70% { transform: translateY(-26vh) rotate(6deg); } 90% { transform: translateY(-4vh) rotate(-3deg); } 100% { transform: translateY(0) rotate(0); } }
 @keyframes count-pop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 30% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; } 100% { transform: translate(-50%, -110%) scale(1); opacity: 0; } }
+
+/* ---------- town: the farm – sheep paddock, hen coop, tractor, pig pen ---------- */
+.paddock { left: 11.5%; top: 53%; width: 22vh; height: 9vh; cursor: pointer; }
+.paddock .fence { position: absolute; left: 8vh; bottom: 0; width: 6vh; height: 5vh; pointer-events: none;
+  background: linear-gradient(90deg, #c9a06a 0 .8vh, transparent .8vh) 0 0 / 2.6vh 100% repeat-x,
+    linear-gradient(#e0b97a, #e0b97a) 0 1.2vh / 100% .7vh no-repeat, linear-gradient(#e0b97a, #e0b97a) 0 3vh / 100% .7vh no-repeat; }
+.paddock .sheep { position: absolute; left: 0; bottom: .8vh; width: 7vh; height: 5.4vh; --pos: translateX(0); transform-origin: 50% 100%; animation: sheep-graze 3.4s ease-in-out infinite; }   /* --pos: which side of the fence (the graze bob keeps it) */
+.paddock .sheep::before { content: ''; position: absolute; left: 0; right: 0; top: 0; bottom: 1.1vh; background: #fff; border: .25vh solid #3a2e2e; border-radius: 50% 50% 45% 45% / 60% 60% 45% 45%; box-shadow: inset -.8vh -.4vh 0 rgba(0,0,0,.06); }
+.paddock .sheep::after { content: ''; position: absolute; left: 3.2vh; top: -.7vh; width: 1.9vh; height: 1.9vh; background: #fff; border: .25vh solid #3a2e2e; border-radius: 50%; }
+.paddock .sheep .face { position: absolute; right: -1vh; top: .5vh; width: 2.6vh; height: 2.8vh; border-radius: 45% 45% 50% 50%; background: radial-gradient(circle at 34% 42%, #fff 0 .33vh, transparent .43vh), radial-gradient(circle at 70% 42%, #fff 0 .33vh, transparent .43vh), #3a2e2e; }
+.paddock .sheep .face::before, .paddock .sheep .face::after { content: ''; position: absolute; top: .5vh; width: 1.1vh; height: .7vh; background: #3a2e2e; border-radius: 50%; }
+.paddock .sheep .face::before { left: -.8vh; transform: rotate(20deg); } .paddock .sheep .face::after { right: -.8vh; transform: rotate(-20deg); }
+.paddock .sheep .legs { position: absolute; left: 1vh; bottom: 0; width: 5.2vh; height: 1.5vh; background: repeating-linear-gradient(90deg, #3a2e2e 0 .7vh, transparent .7vh 1.5vh); }
+.paddock.jumping .sheep { animation: sheep-jump-r 1.4s ease-in-out forwards; }
+.paddock.over .sheep { --pos: translateX(14vh) scaleX(-1); }
+.paddock.over.jumping .sheep { animation-name: sheep-jump-l; }
+@keyframes sheep-graze { 0%, 100% { transform: var(--pos) scaleY(1); } 50% { transform: var(--pos) scaleY(.96) translateY(.1vh); } }
+@keyframes sheep-jump-r { 0% { transform: translateX(0); } 18% { transform: translateX(.6vh) scale(1.08, .86); } 55% { transform: translateX(7.5vh) translateY(-6.5vh) rotate(12deg); } 90% { transform: translateX(14vh) translateY(0) scale(1.1, .9); } 100% { transform: translateX(14vh); } }
+@keyframes sheep-jump-l { 0% { transform: translateX(14vh) scaleX(-1); } 18% { transform: translateX(13.4vh) scale(-1.08, .86); } 55% { transform: translateX(6.5vh) translateY(-6.5vh) scaleX(-1) rotate(12deg); } 90% { transform: translateX(0) translateY(0) scale(-1.1, .9); } 100% { transform: translateX(0) scaleX(-1); } }
+
+.coop { left: 6%; top: 84%; width: 21vh; height: 7vh; cursor: pointer; }
+.coop .hutch { position: absolute; left: 0; bottom: 0; width: 6vh; height: 4.6vh; background: #e0b97a; border-radius: 3px; box-shadow: inset -.8vh 0 0 rgba(0,0,0,.08), inset 0 0 0 .3vh #c9a06a; }
+.coop .hutch::before { content: ''; position: absolute; left: -8%; right: -8%; bottom: 100%; height: 2.4vh; background: #8d5524; clip-path: polygon(0 100%, 50% 0, 100% 100%); }
+.coop .hutch::after { content: ''; position: absolute; left: 50%; bottom: 0; width: 2.2vh; height: 2.8vh; margin-left: -1.1vh; background: #5a3410; border-radius: 1.1vh 1.1vh 0 0; }
+.coop .hen { position: absolute; bottom: .9vh; width: 3.6vh; height: 3vh; --h: #fff; background: var(--h); border: .25vh solid #3a2e2e; border-radius: 55% 45% 45% 55% / 60% 60% 45% 45%; transform-origin: 50% 100%; }
+.coop .hen.h1 { left: 7vh; } .coop .hen.h2 { left: 11.4vh; --h: #d9822b; }
+.coop .hen::before { content: ''; position: absolute; left: -1.1vh; top: -.5vh; width: 1.8vh; height: 1.6vh; background: var(--h); border: .25vh solid #3a2e2e; border-radius: 50% 10% 50% 50%; transform: rotate(-25deg); }
+.coop .hen::after { content: ''; position: absolute; left: .9vh; bottom: -1.1vh; width: 1.7vh; height: .9vh; background: linear-gradient(90deg, #ff8a00 0 .35vh, transparent .35vh 1.3vh, #ff8a00 1.3vh 1.65vh, transparent 0); }
+.coop .hen b { position: absolute; right: -1vh; top: -1.7vh; width: 2vh; height: 2vh; background: radial-gradient(circle at 62% 45%, #1a1a1a 0 .25vh, transparent .35vh), var(--h); border: .25vh solid #3a2e2e; border-radius: 50%; transform-origin: 20% 100%; animation: peck 1.7s ease-in-out infinite; }
+.coop .hen.h2 b { animation-delay: -.8s; }
+.coop .hen b::before { content: ''; position: absolute; left: .3vh; top: -.8vh; width: 1.2vh; height: .9vh; background: #e63946; border-radius: .6vh .6vh 0 0; }
+.coop .hen b::after { content: ''; position: absolute; left: 100%; top: 45%; width: 0; height: 0; border-top: .4vh solid transparent; border-bottom: .4vh solid transparent; border-left: .9vh solid #ff8a00; }
+.coop.tapped .hen { animation: hen-flap .9s ease-in-out; }
+.coop.tapped .hen.h2 { animation-delay: .15s; }
+.coop .egg { position: absolute; left: 15.2vh; bottom: .3vh; width: 1.9vh; height: 2.4vh; background: #fff8e7; border: .25vh solid #3a2e2e; border-radius: 50% / 60% 60% 40% 40%; transform: scale(0); transform-origin: 50% 100%; }
+.coop.laying .egg { animation: egg-lay 5s linear both; }
+.coop .chick { position: absolute; left: 17vh; bottom: .9vh; width: 2.4vh; height: 2.3vh; background: radial-gradient(circle at 64% 42%, #1a1a1a 0 .25vh, transparent .35vh), #ffd23f; border: .25vh solid #3a2e2e; border-radius: 50%; transform: scale(0); transform-origin: 50% 100%; }
+.coop .chick::after { content: ''; position: absolute; left: 100%; top: 42%; width: 0; height: 0; border-top: .35vh solid transparent; border-bottom: .35vh solid transparent; border-left: .8vh solid #ff8a00; }
+.coop.laying .chick { animation: chick-hatch 5s linear both; }
+@keyframes peck { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(.6vh) rotate(18deg); } }
+@keyframes hen-flap { 0%, 100% { transform: translateY(0); } 30% { transform: translateY(-2.6vh) rotate(-8deg) scale(1.08, .92); } 55% { transform: translateY(-1vh) rotate(6deg); } 75% { transform: translateY(0) scale(1.12, .88); } }
+@keyframes egg-lay {
+  0% { transform: translateX(-1vh) scale(0); } 8% { transform: translateX(-1vh) scale(1) rotate(-15deg); } 18% { transform: translateX(1.5vh) rotate(15deg); } 26%, 40% { transform: translateX(2vh) rotate(0); }
+  44% { transform: translateX(2vh) rotate(-14deg); } 48% { transform: translateX(2vh) rotate(14deg); } 52% { transform: translateX(2vh) rotate(-14deg); } 56% { transform: translateX(2vh) rotate(14deg); }
+  60% { transform: translateX(2vh) rotate(0) scale(1); } 64%, 94% { transform: translateX(2vh) scale(1.15, .45); } 100% { transform: translateX(2vh) scale(0); }
+}
+@keyframes chick-hatch { 0%, 60% { transform: scale(0); } 66% { transform: scale(1.15) translateY(-1.2vh); } 72% { transform: scale(1) translateY(0); } 78% { transform: translateY(-.6vh); } 84% { transform: translateY(0); } 90% { transform: translateY(-.6vh); } 94% { transform: scale(1); } 100% { transform: scale(0); } }
+
+.tractor { left: 22.5%; top: 62%; width: 15vh; height: 10vh; cursor: pointer; transform-origin: 50% 100%; }
+.tractor.driving { animation: tractor-drive 4.4s ease-in-out; }
+.tractor .body { position: absolute; left: 1vh; right: 1vh; bottom: 2.4vh; height: 5.6vh; }
+.tractor.driving .body { animation: tractor-bounce .22s ease-in-out infinite; }
+.tractor .hood { position: absolute; left: 0; bottom: 0; width: 58%; height: 55%; background: #e63946; border: .3vh solid #3a2e2e; border-radius: 1.2vh .6vh .4vh .4vh; box-shadow: inset 0 -1vh 0 rgba(0,0,0,.15); }
+.tractor .hood::before { content: ''; position: absolute; left: .5vh; top: .5vh; width: 1.6vh; height: 1.6vh; border-radius: .3vh; background: repeating-linear-gradient(#3a2e2e 0 .25vh, #cfd8dc .25vh .6vh); }
+.tractor .hood::after { content: ''; position: absolute; left: -.5vh; top: .8vh; width: .9vh; height: .9vh; border-radius: 50%; background: #ffe08a; border: .2vh solid #3a2e2e; }
+.tractor .cab { position: absolute; right: 0; bottom: 0; width: 44%; height: 100%; background: #e63946; border: .3vh solid #3a2e2e; border-radius: .9vh .9vh .4vh .4vh; box-shadow: inset 0 -1vh 0 rgba(0,0,0,.15); }
+.tractor .cab::before { content: ''; position: absolute; left: .5vh; right: .5vh; top: .5vh; height: 45%; background: #bfe9ff; border-radius: .3vh; }
+.tractor .pipe { position: absolute; left: 2.6vh; bottom: 55%; width: .9vh; height: 3.4vh; background: #444; border-radius: .3vh .3vh 0 0; box-shadow: inset 0 .5vh 0 #666; }
+.tractor .wheel { position: absolute; bottom: 0; border-radius: 50%; background: radial-gradient(circle, #ffc400 0 32%, #333 34%); border: .3vh solid #222; }
+.tractor .wheel::after { content: ''; position: absolute; left: 50%; top: 20%; width: .4vh; height: 60%; margin-left: -.2vh; background: #e69b00; border-radius: .2vh; }
+.tractor .wheel.back { right: .4vh; width: 5.6vh; height: 5.6vh; }
+.tractor .wheel.front { left: 1.4vh; width: 3.4vh; height: 3.4vh; }
+.tractor.driving .wheel { animation: spin-flat .5s linear infinite; }
+@keyframes tractor-drive { 0% { transform: translateX(0); } 7% { transform: translateX(-.5vh) rotate(-2deg); } 40% { transform: translateX(13vh) rotate(0); } 55% { transform: translateX(13vh); } 62% { transform: translateX(13vh) rotate(2deg); } 94% { transform: translateX(0) rotate(0); } 100% { transform: translateX(0); } }
+@keyframes tractor-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-.35vh); } }
+
+.pigpen { left: 26.5%; top: 79%; width: 16vh; height: 8vh; cursor: pointer; }
+.pigpen.tapped .mud { animation: pond-wobble 1.3s ease-in-out; }
+.pigpen .mud { position: absolute; left: 1vh; right: 1vh; bottom: .4vh; height: 3.4vh; border-radius: 50%; background: radial-gradient(ellipse at 40% 40%, #a0704a, #6b3e17 75%); box-shadow: inset 0 .4vh .8vh rgba(0,0,0,.2); }
+.pigpen .rail { position: absolute; left: 0; right: 0; bottom: .2vh; height: 4.6vh; pointer-events: none;
+  background: linear-gradient(90deg, #c9a06a 0 .8vh, transparent .8vh) 0 0 / 15.2vh 100% repeat-x,
+    linear-gradient(#e0b97a, #e0b97a) 0 .8vh / 100% .6vh no-repeat, linear-gradient(#e0b97a, #e0b97a) 0 2.6vh / 100% .6vh no-repeat; }
+.pigpen .pig { position: absolute; left: 50%; bottom: 1.6vh; width: 6.4vh; height: 4.6vh; margin-left: -3.2vh; background: #f6b8c8; border: .25vh solid #3a2e2e; border-radius: 45% 45% 40% 40% / 55% 55% 45% 45%; transform-origin: 50% 100%; }
+.pigpen.muddy .pig { background: radial-gradient(circle at 22% 38%, #8d5a2b 0 .7vh, transparent .8vh), radial-gradient(circle at 78% 62%, #8d5a2b 0 .8vh, transparent .9vh), radial-gradient(circle at 42% 84%, #8d5a2b 0 .55vh, transparent .65vh), #f6b8c8; }
+.pigpen .pig::before { content: ''; position: absolute; left: 1.6vh; top: 1.2vh; width: .5vh; height: .5vh; border-radius: 50%; background: #1a1a1a; box-shadow: 2.4vh 0 0 #1a1a1a; }
+.pigpen .snout { position: absolute; left: 50%; top: 1.9vh; width: 2.2vh; height: 1.5vh; margin-left: -1.1vh; border-radius: 50%; border: .25vh solid #3a2e2e; background: radial-gradient(circle at 32% 50%, #c96 0 .22vh, transparent .32vh), radial-gradient(circle at 68% 50%, #c96 0 .22vh, transparent .32vh), #f28fb0; }
+.pigpen .ear { position: absolute; top: -.9vh; width: 1.5vh; height: 1.7vh; background: #f6b8c8; border: .25vh solid #3a2e2e; border-radius: 60% 60% 30% 30%; }
+.pigpen .ear.l { left: .6vh; transform: rotate(-20deg); } .pigpen .ear.r { right: .6vh; transform: rotate(20deg); }
+.pigpen .tail { position: absolute; right: -1.3vh; top: 1vh; width: 1.2vh; height: 1.2vh; border: .35vh solid #e8879f; border-left-color: transparent; border-radius: 50%; transform-origin: 0 50%; animation: tail-twirl 2.2s ease-in-out infinite; }
+.pigpen.tapped .pig { animation: pig-bounce 1.3s ease-in-out; }
+@keyframes tail-twirl { 0%, 100% { transform: rotate(-20deg); } 50% { transform: rotate(25deg); } }
+@keyframes pig-bounce { 0%, 100% { transform: translateY(0); } 20% { transform: translateY(-3.6vh) rotate(-8deg); } 40% { transform: translateY(0) scale(1.15, .85); } 55% { transform: translateY(-2.6vh) rotate(8deg); } 72% { transform: translateY(0) scale(1.15, .85); } 85% { transform: translateY(-1vh); } }
+
+/* ---------- town: the square – bench & cat, balloon cart ---------- */
+.bench { left: 35.5%; top: 79%; width: 14vh; height: 8vh; cursor: pointer; }
+.bench.tapped { animation: patch-wobble .6s ease-in-out; }
+.bench .seat { position: absolute; left: 0; right: 0; bottom: 2.2vh; height: 1.5vh; background: #a0522d; border-radius: .3vh; box-shadow: 0 -2.4vh 0 #a0522d; }
+.bench .seat::before { content: ''; position: absolute; left: 1vh; right: 1vh; top: -3.6vh; bottom: -2.2vh; z-index: -1; background: linear-gradient(90deg, #37474f 0 1vh, transparent 1vh calc(100% - 1vh), #37474f 0); }
+.bench .cat { position: absolute; left: 4vh; bottom: 3.7vh; width: 6vh; height: 3vh; background: repeating-linear-gradient(120deg, transparent 0 .9vh, rgba(0,0,0,.12) .9vh 1.3vh), #ff8a00; border: .25vh solid #3a2e2e; border-radius: 50% 50% 45% 45% / 70% 70% 40% 40%; transform-origin: 50% 100%; }
+.bench.awake .cat { animation: cat-wake 4s ease-in-out both; }
+.bench .cat .head { position: absolute; right: -.6vh; top: -.8vh; width: 2.6vh; height: 2.4vh; background: #ff8a00; border: .25vh solid #3a2e2e; border-radius: 50% 50% 55% 55%; }
+.bench .cat .head::before { content: ''; position: absolute; inset: 0; background: linear-gradient(#1a1a1a, #1a1a1a) .5vh 1.05vh / .65vh .25vh no-repeat, linear-gradient(#1a1a1a, #1a1a1a) 1.5vh 1.05vh / .65vh .25vh no-repeat; }
+.bench.awake .cat .head::before { background: radial-gradient(circle at .8vh 1vh, #1a1a1a 0 .28vh, transparent .38vh), radial-gradient(circle at 1.85vh 1vh, #1a1a1a 0 .28vh, transparent .38vh); }
+.bench .cat .head::after { content: ''; position: absolute; left: .1vh; right: .1vh; top: -.9vh; height: 1.1vh; background: #ff8a00; clip-path: polygon(0 100%, 18% 0, 40% 100%, 60% 100%, 82% 0, 100% 100%); }
+.bench .cat .tail { position: absolute; left: -1.2vh; bottom: -.2vh; width: 2.4vh; height: 1.8vh; border-top: .6vh solid #ff8a00; border-left: .6vh solid #ff8a00; border-radius: 1.4vh 0 0 0; transform-origin: 100% 100%; animation: tail-flick 3s ease-in-out infinite; }
+.bench .cat .zz { position: absolute; left: 60%; bottom: 130%; font-weight: 700; font-size: 2vh; line-height: 1; color: #fff; text-shadow: 0 0 .5vh rgba(0,0,0,.3); animation: zz 2.4s ease-in-out infinite; }
+.bench.awake .cat .zz { display: none; }
+@keyframes tail-flick { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-25deg); } }
+@keyframes zz { 0% { transform: translate(0, 0) scale(.6); opacity: 0; } 30% { opacity: 1; } 100% { transform: translate(1.5vh, -3vh) scale(1.2); opacity: 0; } }
+@keyframes cat-wake {
+  0% { transform: translate(0, 0); } 10% { transform: scale(1.08, .82); } 24% { transform: translateY(-.8vh) scale(.9, 1.28); } 36% { transform: scale(1); }
+  46% { transform: translateY(-1.4vh) scale(1.05, .95); } 58% { transform: translate(3.5vh, -5vh) rotate(-12deg); } 70% { transform: translate(7.5vh, 1.4vh) rotate(0); }
+  74% { transform: translate(7.5vh, 1.4vh) scale(1.12, .88); } 84% { transform: translate(7.5vh, 1.4vh); } 92% { transform: translate(3.5vh, -4.5vh) rotate(10deg); } 100% { transform: translate(0, 0); }
+}
+
+.balloons { left: 61%; top: 76%; width: 10vh; height: 9vh; cursor: pointer; }
+.balloons.tapped { animation: patch-wobble .6s ease-in-out; }
+.balloons .cart { position: absolute; left: 0; right: 0; bottom: 1.4vh; height: 4.6vh; background: linear-gradient(transparent 0 40%, #fff 40% 60%, transparent 60%), #8e44ff; border: .3vh solid #3a2e2e; border-radius: .6vh; }
+.balloons .cart::before, .balloons .cart::after { content: ''; position: absolute; bottom: -1.7vh; width: 2.4vh; height: 2.4vh; border-radius: 50%; background: radial-gradient(circle, #cfd8dc 0 .55vh, #333 .65vh); border: .3vh solid #222; }
+.balloons .cart::before { left: .8vh; } .balloons .cart::after { right: .8vh; }
+.balloons .bunch { position: absolute; left: 50%; bottom: 6vh; width: 0; height: 0; transform-origin: 50% 100%; animation: bunch-sway 3.4s ease-in-out infinite; }
+.balloons .bunch b { position: absolute; left: var(--x); bottom: var(--y); width: 3.4vh; height: 4.2vh; border-radius: 50% 50% 50% 50% / 45% 45% 55% 55%; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.55) 0 .5vh, transparent .9vh), var(--b); border: .25vh solid #3a2e2e; transform-origin: 50% 100%; transition: transform .5s cubic-bezier(.34,1.56,.64,1); }
+.balloons .bunch b::after { content: ''; position: absolute; left: 50%; top: 100%; width: .22vh; height: var(--y); margin-left: -.11vh; background: #555; }
+.balloons .bunch b.gone { transform: scale(0); transition: transform .15s ease-in; }
+.loose-balloon { position: absolute; width: 5.4vh; height: 6.6vh; margin: -3.3vh -2.7vh; border-radius: 50% 50% 50% 50% / 45% 45% 55% 55%; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.55) 0 .7vh, transparent 1.2vh), var(--c); border: .3vh solid #3a2e2e; display: flex; align-items: center; justify-content: center; font-family: var(--font-letter); font-weight: 700; font-size: 3.6vh; line-height: 1; color: #fff; text-shadow: 0 .2vh 0 rgba(0,0,0,.25); pointer-events: none; animation: balloon-away 3.4s ease-in forwards; }
+.loose-balloon::after { content: ''; position: absolute; left: 50%; top: 100%; width: .22vh; height: 4vh; margin-left: -.11vh; background: #555; }
+@keyframes bunch-sway { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+@keyframes balloon-away { 0% { transform: translate(0, 0) scale(.6); opacity: 0; } 12% { transform: translate(0, -3vh) scale(1.15); opacity: 1; } 40% { transform: translate(2.5vh, -16vh) rotate(7deg); } 70% { transform: translate(-1.5vh, -32vh) rotate(-7deg); } 100% { transform: translate(1vh, -50vh) rotate(0); opacity: 1; } }
+
+/* ---------- town: the park – sandpit, see-saw ---------- */
+.sandpit { left: 67%; top: 79%; width: 20vh; height: 8vh; cursor: pointer; }
+.sandpit.tapped { animation: patch-wobble .6s ease-in-out; }
+.sandpit::before { content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(ellipse at 45% 40%, #ffe9b3, #f3d9a4 70%); box-shadow: 0 0 0 1vh #c9a06a, inset 0 .5vh 1vh rgba(0,0,0,.08); }
+.sandpit .bucket { position: absolute; left: 2.6vh; bottom: 2.4vh; width: 2.6vh; height: 2.6vh; background: #2196f3; border: .25vh solid #3a2e2e; border-radius: .3vh .3vh .9vh .9vh; }
+.sandpit .bucket::before { content: ''; position: absolute; left: 10%; right: 10%; top: -1.2vh; height: 1.2vh; border: .25vh solid #3a2e2e; border-bottom: 0; border-radius: 1vh 1vh 0 0; }
+.sandpit .spade { position: absolute; right: 3vh; bottom: 2.2vh; width: 1.8vh; height: 2.4vh; background: #e63946; border: .25vh solid #3a2e2e; border-radius: .2vh .2vh 1vh 1vh; transform: rotate(22deg); transform-origin: 50% 100%; }
+.sandpit .spade::before { content: ''; position: absolute; left: 50%; bottom: 100%; width: .5vh; height: 2.6vh; margin-left: -.25vh; background: #8d5524; }
+.sandpit .castle { position: absolute; left: 50%; bottom: 2vh; width: 8vh; height: 9vh; margin-left: -4vh; }
+.sandpit .castle b { position: absolute; left: 50%; bottom: 0; background: #e6c27a; border: .25vh solid #b8894a; border-radius: .4vh .4vh 0 0; box-shadow: inset 0 -.8vh 0 rgba(0,0,0,.06); transform: scale(0); transform-origin: 50% 100%; transition: transform .3s ease-in; }
+.sandpit .castle b::before { content: ''; position: absolute; left: -.25vh; right: -.25vh; top: -.9vh; height: .9vh; background: linear-gradient(90deg, #e6c27a 0 55%, transparent 55%) 0 0 / 1.4vh 100% repeat-x; }
+.sandpit .castle .t1 { width: 7vh; height: 3vh; margin-left: -3.5vh; }
+.sandpit .castle .t2 { width: 4.6vh; height: 3vh; bottom: 2.9vh; margin-left: -2.3vh; }
+.sandpit .castle .t3 { width: 2.6vh; height: 2.6vh; bottom: 5.8vh; margin-left: -1.3vh; }
+.sandpit .castle .flag { width: .3vh; height: 2.4vh; bottom: 8.3vh; margin-left: -.15vh; border: 0; background: #3a2e2e; border-radius: 0; box-shadow: none; }
+.sandpit .castle .flag::before { left: .3vh; top: 0; right: auto; width: 1.8vh; height: 1.2vh; background: #e63946; clip-path: polygon(0 0, 100% 50%, 0 100%); animation: flap 1.2s ease-in-out infinite; }
+.sandpit.built .castle b { transform: scale(1); transition: transform .45s cubic-bezier(.34,1.56,.64,1); }
+.sandpit.built .castle .t2 { transition-delay: .35s; } .sandpit.built .castle .t3 { transition-delay: .7s; } .sandpit.built .castle .flag { transition-delay: 1.05s; }
+
+.seesaw { left: 79%; top: 79%; width: 20vh; height: 8vh; cursor: pointer; }
+.seesaw .pivot { position: absolute; left: 50%; bottom: 0; width: 5vh; height: 4.2vh; margin-left: -2.5vh; background: #2196f3; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.seesaw .pivot::after { content: ''; position: absolute; left: 50%; top: .9vh; width: .9vh; height: .9vh; margin-left: -.45vh; border-radius: 50%; background: #1e6fb8; }
+.seesaw .plank { position: absolute; left: 0; right: 0; bottom: 3.6vh; height: 1.3vh; background: #ff8a00; border-radius: .6vh; box-shadow: 0 .3vh 0 #c25e00; transform: rotate(-8deg); transition: transform .5s cubic-bezier(.34,1.56,.64,1); }
+.seesaw.tilt .plank { transform: rotate(8deg); }
+.seesaw .handle { position: absolute; bottom: 100%; width: .5vh; height: 1.6vh; background: #37474f; border-radius: .2vh; }
+.seesaw .handle.l { left: 2.4vh; } .seesaw .handle.r { right: 2.4vh; }
+.seesaw .rider { position: absolute; left: .4vh; bottom: 100%; font-size: 3.4vh; line-height: 1; transform-origin: 50% 100%; }
+.seesaw.fly .rider { animation: teddy-fly 2.2s ease-in-out both; }
+@keyframes teddy-fly { 0% { transform: translateY(0); } 40% { transform: translateY(-24vh) rotate(180deg); } 80% { transform: translateY(0) rotate(360deg); } 88% { transform: scale(1.15, .85) rotate(360deg); } 100% { transform: rotate(360deg); } }

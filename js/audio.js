@@ -99,6 +99,11 @@ const Sfx = (() => {
     beep()    { tone({ freq: 880, dur: 0.16, type: 'square', vol: 0.07 }); },
     blast()   { noise({ dur: 2.4, vol: 0.5, freq: 220, q: 0.6, type: 'lowpass' }); noise({ dur: 2.0, vol: 0.12, freq: 3000, q: 0.4, type: 'highpass', at: 0.1 }); tone({ freq: 55, slide: 420, dur: 2.4, type: 'sawtooth', vol: 0.1, attack: 0.2 }); },
     jingle()  { [784, 659, 784, 659, 880, 784, 659, 523, 587, 659, 784].forEach((f, i) => tone({ freq: f, dur: 0.2, type: 'triangle', vol: 0.09, at: i * 0.2 })); [392, 330, 262, 330].forEach((f, i) => tone({ freq: f, dur: 0.5, type: 'sine', vol: 0.06, at: i * 0.55 })); },
+    baa()     { for (let i = 0; i < 6; i++) tone({ freq: i % 2 ? 300 : 345, slide: i % 2 ? 320 : 330, dur: 0.11, type: 'sawtooth', vol: 0.07, at: i * 0.09, attack: 0.02 }); },
+    cluck()   { [0, 0.16, 0.32, 0.62].forEach((at, i) => { tone({ freq: i === 3 ? 720 : 520, slide: i === 3 ? 400 : 640, dur: i === 3 ? 0.3 : 0.09, type: 'square', vol: 0.05, at }); noise({ dur: 0.06, vol: 0.12, freq: 1800, q: 1.5, at }); }); },
+    honk()    { tone({ freq: 392, dur: 0.22, type: 'square', vol: 0.07 }); tone({ freq: 494, dur: 0.22, type: 'square', vol: 0.05 }); tone({ freq: 330, dur: 0.4, type: 'square', vol: 0.07, at: 0.26 }); tone({ freq: 415, dur: 0.4, type: 'square', vol: 0.05, at: 0.26 }); },
+    oink()    { [0, 0.28].forEach(at => { tone({ freq: 260, slide: 170, dur: 0.16, type: 'sawtooth', vol: 0.1, at, attack: 0.02 }); noise({ dur: 0.12, vol: 0.18, freq: 700, q: 2, at: at + 0.02 }); }); },
+    meow()    { tone({ freq: 620, slide: 980, dur: 0.22, type: 'triangle', vol: 0.09, attack: 0.03 }); tone({ freq: 980, slide: 500, dur: 0.4, type: 'triangle', vol: 0.09, at: 0.22 }); },
     fanfare() {
       [523, 523, 523, 659, 784, 659, 784, 1047].forEach((f, i) => tone({ freq: f, dur: i === 7 ? 0.6 : 0.16, type: 'triangle', vol: 0.22, at: i * 0.13 }));
       [262, 330, 392, 523].forEach((f, i) => tone({ freq: f, dur: 0.7, type: 'sine', vol: 0.10, at: 0.9 + i * 0.02 }));

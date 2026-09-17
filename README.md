@@ -73,16 +73,23 @@ Paint → Monster, advancing two steps per play), then finishes with Build-a-Let
   On the farm: the **barn** doors swing open and the cow comes out to moo; the **duck pond**'s
   duck flaps and quacks, a frog hops across and a fish jumps; the **veggie patch** has a rabbit that
   pops up, nibbles a carrot and dives back down; the **scarecrow** spins and startles two crows;
-  the **windmill** whirls and blows a gust.
+  the **windmill** whirls and blows a gust; the **sheep** baas and leaps over its fence (and back
+  next time – at night the friends nearby get sleepy watching); the **hens** flap and cluck, an
+  egg rolls out, wobbles, cracks and a chick pops out; the **tractor** toots, puffs smoke and
+  chugs forward, then beeps as it reverses; the **pig** oinks and bounces in its mud (getting
+  muddy, then shaking it off next tap).
   In the square: the **fountain** fires a geyser that rains back down and knocks over anyone close;
   **flowers** grow a beanstalk; the tower **flag** changes colour; the **bakery** flaps its awning
   and floats out cupcakes; the **post box** pops out a letter of the alphabet and says its name;
-  the **lamp post** lights up (and flickers).
+  the **lamp post** lights up (and flickers); the **cat** on the bench wakes, stretches, meows and
+  leaps after a butterfly before hopping back for another nap; the **balloon cart** lets one balloon
+  go – it floats up carrying a letter (which it says) and pops at the top.
   In the park: the **ferris wheel** spins fast with flashing lights; the **station** bell brings the
   train chugging right across the whole town (everyone waves 🚂); the **swing** swings high;
   the **slide** calls the nearest friend over to climb up and whoosh down; the **ice-cream van**
   plays its jingle, opens the hatch and floats out ice creams; the **rocket** counts down
-  3‑2‑1, blasts off and floats back down under a parachute.
+  3‑2‑1, blasts off and floats back down under a parachute; the **sandpit** builds a sandcastle
+  tier by tier (tap again and it crumbles); the **see-saw** flips and flings the teddy sky-high.
 
 Progress is saved in the browser (localStorage). Hold the ⚙️ button for a second to open
 the grown-ups panel: test the voice, unlock everyone (for trying the town), or reset.
