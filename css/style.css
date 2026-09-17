@@ -751,10 +751,12 @@ img { -webkit-user-drag: none; user-select: none; }
 .char[data-char=lollipop].act .disc { animation: p-spin360 .8s linear 2; }
 .char[data-char=lollipop].act .confetti { animation: p-spin360 1.6s ease-in-out; }
 .char[data-char=lollipop].act .fx { animation: p-fx-scatter 1.6s ease-out both; }
-/* Mug – eyes close, steam rises, z's float */
-.char[data-char=mug].act .eye { animation: p-lids 2.4s ease-in-out; }
-.char[data-char=mug].act .steam { animation: p-steam 2.4s ease-in-out; }
-.char[data-char=mug].act .zz { animation: p-zz 1.2s ease-out 2; }
+/* Moon – yawns: eyes close, nightcap flops, stretching arm wiggles, z's float, stars twinkle */
+.char[data-char=moon].act .eye { animation: p-lids 2.4s ease-in-out; }
+.char[data-char=moon].act .cap { animation: p-wobble .8s ease-in-out 3; }
+.char[data-char=moon].act .arm-r { animation: p-wag .6s ease-in-out 4; }
+.char[data-char=moon].act .zz { animation: p-zz 1.2s ease-out 2; }
+.char[data-char=moon].act .fx { animation: p-fx-pop 2.4s ease-out both; }
 /* Nest – chick pops up and chirps, eggs wobble */
 .char[data-char=nest].act .chick { animation: p-chick 1.6s ease-in-out; }
 .char[data-char=nest].act .egg-l { animation: p-wobble .4s ease-in-out 4; }

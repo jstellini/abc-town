@@ -793,7 +793,7 @@ const Town = (() => {
 
   // ---------- tap reactions ----------
   // How long each character's own part animation (css: .char[data-char=…].act) runs.
-  const ACT_SECS = { banana: 2.0, sun: 2.2, mug: 2.4, potato: 2.4, umbrella: 2.4, volcano: 2.2, drum: 1.8, xylophone: 2.0, octopus: 2.0, robot: 1.8 };
+  const ACT_SECS = { banana: 2.0, sun: 2.2, moon: 2.4, potato: 2.4, umbrella: 2.4, volcano: 2.2, drum: 1.8, xylophone: 2.0, octopus: 2.0, robot: 1.8 };
   function react(t) {
     const kind = t.c.react;
     endConvo(t);

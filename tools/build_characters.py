@@ -512,26 +512,41 @@ def lollipop():
     return svg("lollipop", defs, body)
 
 
-def mug():
-    defs = radial("g", "#fffaf0", "#f2e2b8", "#b89a5c", "35%", "30%")
-    body = shadow(rx=64)
-    body += legs("#b89a5c", "#6b3a10")
-    l, lh, _ = arm(48, 124, -1, "down", "#b89a5c")
-    r, rh, _ = arm(152, 124, 1, "down", "#b89a5c")
+def moon():
+    """Sleepy crescent moon in a nightcap, mid-stretch. The crescent is a big circle with a
+    smaller one bitten out of the right; the tips are the two intersection points."""
+    defs = radial("g", "#fffce6", "#fff0a8", "#e6c45c", "30%", "40%")
+    x1, y1, r1 = 92, 106, 66      # outer circle
+    x2, y2, r2 = 133, 96, 48      # bite
+    d = math.hypot(x2 - x1, y2 - y1)
+    a = (r1 * r1 - r2 * r2 + d * d) / (2 * d)
+    h = math.sqrt(r1 * r1 - a * a)
+    mx, my = x1 + a * (x2 - x1) / d, y1 + a * (y2 - y1) / d
+    top = (mx + h * (y2 - y1) / d, my - h * (x2 - x1) / d)
+    bot = (mx - h * (y2 - y1) / d, my + h * (x2 - x1) / d)
+    crescent = (f"M{top[0]:.1f},{top[1]:.1f} A{r1},{r1} 0 1 0 {bot[0]:.1f},{bot[1]:.1f} "
+                f"A{r2},{r2} 0 1 1 {top[0]:.1f},{top[1]:.1f} Z")
+    body = shadow(rx=62)
+    body += legs("#e6c45c", "#3d5a99", lx=66, rx=98, y=170)
+    l, lh, _ = arm(36, 124, -1, "down", "#e6c45c")
+    r, rh, _ = arm(104, 150, 1, "up", "#e6c45c")          # stretching after a yawn
     body += l + r
-    body += '<path d="M152,104 Q192,104 192,136 Q192,168 152,168" fill="none" stroke="#b89a5c" stroke-width="18" stroke-linecap="round"/>'
-    body += '<path d="M152,104 Q192,104 192,136 Q192,168 152,168" fill="none" stroke="#f2e2b8" stroke-width="12" stroke-linecap="round"/>'
-    body += '<path d="M48,72 V166 Q48,184 66,184 H134 Q152,184 152,166 V72Z" fill="url(#g)" stroke="#b89a5c" stroke-width="3"/>'
-    body += '<ellipse cx="100" cy="72" rx="52" ry="14" fill="#f2e2b8" stroke="#b89a5c" stroke-width="3"/>'
-    body += '<ellipse cx="100" cy="72" rx="44" ry="10" fill="#6b3a10"/><ellipse cx="90" cy="70" rx="14" ry="4" fill="#8a5424"/>'
-    steam = "".join(f'<path d="M{x},56 q-6,-8 0,-16 q6,-8 0,-16" fill="none" stroke="#bbb" stroke-width="3" stroke-linecap="round" opacity=".6"/>'
-                    for x in (80, 100, 120))
-    body += part("steam", steam, 100, 56)
-    body += face("M", 100, 112, 20, 14, "#2b2b2b", "sleepy", "small", look=(0.0, 0.3), lid="#f2e2b8", mouth_dy=12)
-    body += part("zz", '<text x="150" y="60" font-family="Arial, sans-serif" font-weight="700" font-size="14" fill="#4ea8de">z</text>'
-                       '<text x="162" y="44" font-family="Arial, sans-serif" font-weight="700" font-size="18" fill="#4ea8de">z</text>', 156, 52)
+    body += f'<path d="{crescent}" fill="url(#g)" stroke="#d4b04a" stroke-width="3" stroke-linejoin="round"/>'
+    for cx, cy, cr in ((58, 66, 5), (40, 130, 4), (96, 152, 6), (76, 150, 3.5), (52, 152, 3)):
+        body += f'<circle cx="{cx}" cy="{cy}" r="{cr}" fill="#c9a43a" opacity=".3"/>'
+    body += gloss(46, 88, 9, 18, 20, .45)
+    cap = ('<path d="M54,60 C62,18 102,8 128,36 S154,64 154,80 C146,64 134,50 118,46 Z" fill="#3d5a99" stroke="#2b3f73" stroke-width="3" stroke-linejoin="round"/>'
+           '<path d="M50,64 A66,66 0 0 1 124,42" fill="none" stroke="#f4f4ff" stroke-width="11" stroke-linecap="round"/>'
+           '<path d="M50,64 A66,66 0 0 1 124,42" fill="none" stroke="#2b3f73" stroke-width="14" stroke-linecap="round" opacity=".15"/>'
+           f'<circle cx="154" cy="82" r="10" fill="#f4f4ff" stroke="{INK}" stroke-width="2.5"/>')
+    body += part("cap", cap, 88, 54)
+    body += blush(36, 78, 124)
+    body += face("M", 56, 106, 15, 12, "#2b2b2b", "sleepy", "small", look=(0.0, 0.3), lid="#fff0a8", cheeks=False, mouth_dy=10)
+    body += part("zz", '<text x="96" y="84" font-family="Arial, sans-serif" font-weight="700" font-size="14" fill="#4ea8de">z</text>'
+                       '<text x="106" y="68" font-family="Arial, sans-serif" font-weight="700" font-size="18" fill="#4ea8de">z</text>', 104, 76)
     body += lh + rh
-    return svg("mug", defs, body)
+    body += fx(sparkle(16, 40, 8) + sparkle(178, 26, 9) + sparkle(186, 120, 7) + sparkle(24, 190, 6) + sparkle(160, 180, 6))
+    return svg("moon", defs, body)
 
 
 def nest():
@@ -857,7 +872,7 @@ def zipper():
 CHARACTERS = {
     "apple": apple, "banana": banana, "cookie": cookie, "drum": drum, "egg": egg, "flower": flower,
     "glasses": glasses, "hat": hat, "icecream": icecream, "jamjar": jamjar, "key": key, "lollipop": lollipop,
-    "mug": mug, "nest": nest, "octopus": octopus, "potato": potato, "queen": queen, "robot": robot,
+    "moon": moon, "nest": nest, "octopus": octopus, "potato": potato, "queen": queen, "robot": robot,
     "sun": sun, "toaster": toaster, "umbrella": umbrella, "volcano": volcano, "waterbottle": waterbottle,
     "xylophone": xylophone, "yoyo": yoyo, "zipper": zipper,
 }

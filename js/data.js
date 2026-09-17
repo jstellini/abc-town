@@ -22,7 +22,7 @@ const CHARACTERS = [
   { letter: 'J', name: 'Jam Jar',      file: 'jamjar',      sound: 'juh',  react: 'hug',       tag: '💕' },
   { letter: 'K', name: 'Key',          file: 'key',         sound: 'kuh',  react: 'nod',       tag: '💡' },
   { letter: 'L', name: 'Lollipop',     file: 'lollipop',    sound: 'lll',  react: 'dance',     tag: '🎵' },
-  { letter: 'M', name: 'Mug',          file: 'mug',         sound: 'mmm',  react: 'sleep',     tag: '💤' },
+  { letter: 'M', name: 'Moon',         file: 'moon',        sound: 'mmm',  react: 'sleep',     tag: '💤' },
   { letter: 'N', name: 'Nest',         file: 'nest',        sound: 'nnn',  react: 'hug',       tag: '🐣' },
   { letter: 'O', name: 'Octopus',      file: 'octopus',     sound: 'oh',   react: 'wiggle',    tag: '🌀' },
   { letter: 'P', name: 'Potato',       file: 'potato',      sound: 'puh',  react: 'snore',     tag: '💤' },

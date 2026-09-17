@@ -36,7 +36,7 @@ letter, not spell out "b-u-h".
 | `J.mp3` | J. J says juh. juh, juh, Jam Jar! |
 | `K.mp3` | K. K says kuh. kuh, kuh, Key! |
 | `L.mp3` | L. L says lll. lll, lll, Lollipop! |
-| `M.mp3` | M. M says mmm. mmm, mmm, Mug! |
+| `M.mp3` | M. M says mmm. mmm, mmm, Moon! |
 | `N.mp3` | N. N says nnn. nnn, nnn, Nest! |
 | `O.mp3` | O. O says oh. oh, oh, Octopus! |
 | `P.mp3` | P. P says puh. puh, puh, Potato! |
