@@ -56,6 +56,7 @@
     <header class="bar">
       <div class="bar-title">Pick a letter!</div>
       <button id="btn-town" class="round-btn wide" aria-label="Town square">🏡 <span id="town-count">0</span></button>
+      <button id="btn-words" class="round-btn wide" aria-label="Word Town">📖 <span id="words-lock">🔒</span></button>
       <div id="parent-btn-wrap" class="parent-btn-wrap">
         <button id="btn-parent" class="round-btn small" aria-label="Grown-ups (hold)">⚙️</button>
         <svg class="hold-ring" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="19.5"></circle></svg>
@@ -85,6 +86,26 @@
     </header>
     <div id="game-area" class="game-area"></div>
     <div id="game-toast" class="toast"></div>
+  </section>
+
+  <!-- Word Town: the hub of word games -->
+  <section id="screen-words" class="screen">
+    <header class="bar">
+      <button class="round-btn back-btn inline" data-go="home" aria-label="Back">⬅</button>
+      <div class="bar-title">Word Town</div>
+    </header>
+    <div id="words-menu" class="words-menu"></div>
+  </section>
+
+  <!-- A word game -->
+  <section id="screen-wordgame" class="screen">
+    <header class="bar game-bar">
+      <button class="round-btn back-btn inline" data-go="words" aria-label="Back">⬅</button>
+      <div id="word-prompt" class="game-prompt">Who starts with</div>
+      <button id="word-target" class="target-card">A</button>
+      <div id="word-stars" class="stars"></div>
+    </header>
+    <div id="word-area" class="word-area"></div>
   </section>
 
   <!-- Character reveal -->
@@ -215,6 +236,7 @@
 <script src="js/fx.js"></script>
 <script src="js/games.js"></script>
 <script src="js/town.js"></script>
+<script src="js/words.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
