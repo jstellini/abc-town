@@ -109,7 +109,9 @@ minigames show:
   correct, and the target card shows both.
 
 Build-a-Letter and Paint-the-Letter only ever show one letter, so there is nothing to
-match against — in mixed mode they pick a form at random for that round.
+match against. Paint picks a form at random in mixed mode; Build instead plays **twice**,
+the big letter then the little one, so the child assembles both shapes of the same letter
+back to back — four minigames rather than three.
 
 The setting is a grown-up's preference rather than progress, so resetting progress keeps it.
 
@@ -148,7 +150,9 @@ The setting is a grown-up's preference rather than progress, so resetting progre
   fill the canvas, so lowercase and descenders fit without per-letter tweaking, and a small
   letter like `o` still gets as much paintable area as `A`.
 - **Which games play** – `OTHER_GAMES` in `js/app.js` is the rotation order (Build-a-Letter always
-  comes last). The rotation position is stored with progress, so resetting progress restarts it.
+  comes last, and twice in mixed mode – see `startGames`). The rotation position is stored with
+  progress, so resetting progress restarts it. `Games.play` takes an optional `{ form }` to pin
+  Build to a particular case; without it the game follows the case mode.
 - **Town behaviour** – `js/town.js`: `GROUND_TOP/BOT` (where characters can stand),
   `convoDist()` (how close they must be to chat), `roamTarget()` (how far they wander), and the
   `react()` switch for tap animations. The town is `.town-stage { width: 300% }` in `css/style.css`;

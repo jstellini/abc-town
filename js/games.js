@@ -271,9 +271,10 @@ const Games = (() => {
 
   // ---------- Game 4: Build a letter ----------
   // The letter's strokes are scattered; drag each onto the grey ghost to assemble it.
-  function buildGame(ch, onDone) {
-    // One letter on screen, so mixed mode just picks a form for this round.
-    const L = ch.letter, form = Case.glyph(L), strokes = LETTER_STROKES[form];
+  function buildGame(ch, onDone, opts = {}) {
+    // One letter on screen, so there is nothing to match against: mixed mode
+    // picks a form for the round unless the caller asks for a specific one.
+    const L = ch.letter, form = opts.form || Case.glyph(L), strokes = LETTER_STROKES[form];
     const el = area(); el.className = 'game-area build' + (form === L ? '' : ' lower');
     setPrompt('Build the letter', L, ch.color, form); setStars(0, strokes.length);
     const say = () => Voice.say(`Let's build the letter ${L}! Put the pieces together!`, { key: `${L}-build` });
@@ -747,9 +748,9 @@ const Games = (() => {
   const GAMES = { find: findGame, pop: popGame, magnet: magnetGame, build: buildGame, train: trainGame, ice: iceGame, paint: paintGame, monster: monsterGame };
 
   return {
-    play(type, ch, onDone) {
+    play(type, ch, onDone, opts) {
       this.stop();
-      const handle = GAMES[type](ch, () => { if (active !== handle) return; active = null; area().innerHTML = ''; onDone(); });
+      const handle = GAMES[type](ch, () => { if (active !== handle) return; active = null; area().innerHTML = ''; onDone(); }, opts);
       active = handle;
     },
     stop() { if (active) { active.stop(); active = null; } area().innerHTML = ''; },
