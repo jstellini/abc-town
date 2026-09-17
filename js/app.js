@@ -81,16 +81,25 @@ const App = (() => {
     const c = current;
     const n = progress.plays || 0;
     progress.plays = n + 1; save();
-    const seq = [OTHER_GAMES[(2 * n) % OTHER_GAMES.length], OTHER_GAMES[(2 * n + 1) % OTHER_GAMES.length], 'build'];
+    // Mixed mode builds the letter twice, big then little, so the child assembles
+    // both shapes of the same letter back to back.
+    const builds = Case.get() === 'mixed'
+      ? [{ type: 'build', form: c.letter }, { type: 'build', form: c.letter.toLowerCase() }]
+      : [{ type: 'build' }];
+    const seq = [
+      { type: OTHER_GAMES[(2 * n) % OTHER_GAMES.length] },
+      { type: OTHER_GAMES[(2 * n + 1) % OTHER_GAMES.length] },
+      ...builds,
+    ];
     show('game');
     const stillPlaying = () => current === c && $('#screen-game').classList.contains('active');
-    const step = i => Games.play(seq[i], c, () => {
+    const step = i => Games.play(seq[i].type, c, () => {
       if (!stillPlaying()) return;
       if (i === seq.length - 1) { reveal(); return; }
       toast('Great job! 🎉');
       Sfx.fanfare();
       setTimeout(() => { if (stillPlaying()) step(i + 1); }, 1500);
-    });
+    }, { form: seq[i].form });
     step(0);
   }
 
