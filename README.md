@@ -130,10 +130,22 @@ opens it for testing.
   into the next slot, saying its letter; the finished word is read out. Three words, then back to
   the hub. Tapping a letter that *is* in the word but isn't next just nudges the cursor rather
   than counting as a miss — only a letter that isn't in the word at all does that.
+- **Finish the word** – a picture, its word with the **first letter missing**, and three tiles.
+  Tap the letter the word starts with and it flies into the gap; the finished word is then read
+  back letter by letter and said. Three pictures, then back to the hub. Tap the picture to hear
+  the word again. It is the mirror of *Who starts with…?*: that one gives the letter and asks
+  for the word, this one gives the word and asks for the letter. Always the first letter — the
+  vowel in the middle of "cat" is the hardest sound there is, and the last letter is a trap in
+  half the list (the h of fish, the silent e of five, the ng of ring).
 
-The words come from `TRAIN_WORDS` in `js/data.js` (the same 50 the town train spells), and every
-clip the second game speaks already existed: `{L}-tick` per letter and `word-<word>` for the whole
-word, exactly as `Town.startTrain` says them.
+Build-the-word's words come from `TRAIN_WORDS` in `js/data.js` (the same 50 the town train
+spells) and Finish-the-word's from `PICTURE_WORDS` beside it, each word with the emoji that
+shows it. Both games speak the pair `Town.startTrain` does — `{L}-tick` per letter, then
+`word-<word>` for the whole word — so the only clips either needed were their prompts.
+
+Case works the same way in both: the word is written in one case throughout (lowercase in mixed
+mode), and it is the *tray* that mixes, so a finished word never reads "cAt" while `Case.same`
+still accepts either form of the right tile.
 
 Word games always ask about **spelling** ("which name starts with the letter X"), never about
 sound. Three characters make a sound-framed question wrong: Xylophone starts with X but says
@@ -185,6 +197,9 @@ question is about spelling, but a child reasoning by ear shouldn't be punished f
   Build to a particular case; without it the game follows the case mode.
 - **Train words** – `TRAIN_WORDS` in `js/data.js`. Adding one needs its voice clip: run
   `python tools/generate_voice.py --missing`.
+- **Picture words** – `PICTURE_WORDS` in `js/data.js`: the word and the emoji Finish-the-word
+  shows it with. Keep them concrete enough to guess from the picture alone, and check the emoji
+  is old enough for the iPad's iOS. A new word needs its clip: `python tools/generate_voice.py --missing`.
 - **Word games** – `js/words.js`. `GAMES` at the top is the hub registry: adding a game is one
   entry (`id`, `title`, `icon`, `make`) plus its function, and the menu builds itself. Each game
   returns `{ stop() }` like the letter minigames do. The unlock gate is `ALL_COLLECTED()` in
@@ -223,12 +238,12 @@ question is about spelling, but a child reasoning by ear shouldn't be punished f
 ```
 index.html          screens
 css/style.css       all styling + animations
-js/data.js          the 26 characters (names, sounds, reactions) + letter stroke pieces
+js/data.js          the 26 characters (names, sounds, reactions), letter stroke pieces + word lists
 js/case.js          uppercase / lowercase / mixed letter mode
 js/voice-manifest.js  key → mp3 lookup for the recorded voice lines (auto-generated)
 js/audio.js         Web Audio sound effects + voice playback (recorded clips, TTS fallback)
 js/fx.js            sparkle / confetti particles
-js/games.js         the eight minigames
+js/games.js         the eight letter minigames
 js/town.js          town square simulation, drag & tap
 js/words.js         Word Town: the word-game hub and its games
 js/app.js           screen flow, progress, grown-ups panel

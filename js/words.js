@@ -22,6 +22,7 @@ const Words = (() => {
   const GAMES = [
     { id: 'starts', title: 'Who starts with…?', icon: '🔤', make: startsGame },
     { id: 'build', title: 'Build the word', icon: '🧩', make: buildWordGame },
+    { id: 'finish', title: 'Finish the word', icon: '✏️', make: finishWordGame },
   ];
 
   function openHub() {
@@ -282,6 +283,154 @@ const Words = (() => {
       Voice.say('Brilliant! You did it!', { key: 'words-done' });
       // Tracked, not a bare setTimeout: backing out mid-fanfare must not then
       // bounce the child to the hub from a game they already left.
+      timers.push(setTimeout(() => { running = false; onDone(); }, 2400));
+    }
+
+    ask();
+    return { stop() { running = false; clearTimers(); document.querySelectorAll('.wfly').forEach(n => n.remove()); } };
+  }
+
+  // ---------- Game 3: Finish the word ----------
+  // A picture, its word with the first letter missing, and three tiles. Tap the
+  // letter the word starts with and it flies into the gap; the finished word is
+  // then read back letter by letter and said.
+  //
+  // The mirror image of "Who starts with…?": that one gives the letter and asks
+  // for the word, this one gives the word and asks for the letter.
+  //
+  // It is always the FIRST letter that is missing. The ends of a word are the
+  // only letters a three-year-old can pick out of it – the vowel in the middle of
+  // "cat" is the hardest sound there is – and the last letter is a trap in half
+  // the list: the h of fish, the silent e of five, the ng of ring. The first
+  // letter is honest for every word here.
+  //
+  // Voice: word-<word> for the word (PICTURE_WORDS words all have a clip) and
+  // {L}-tick per letter, the pair the town train and Build-the-word both use.
+  function finishWordGame(onDone) {
+    const ROUNDS = 3;
+    const el = $('#word-area');
+    const rounds = shuffle(PICTURE_WORDS.slice()).slice(0, ROUNDS);
+    let round = 0, running = true, timers = [];
+    const later = (fn, ms) => { const t = setTimeout(() => { if (running) fn(); }, ms); timers.push(t); return t; };
+    const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
+
+    function ask() {
+      const { word, pic } = rounds[round];
+      const letters = [...word.toUpperCase()];
+      const answer = letters[0];
+      // Same rule as Build-the-word: a distractor that is in the word anyway would
+      // leave the child staring at two tiles that both look right.
+      const spare = shuffle(ALL_LETTERS.filter(L => !letters.includes(L))).slice(0, 2);
+      // Words are written lowercase, so mixed mode shows the word lowercase and
+      // mixes the case of the TRAY instead – the finished word never reads "cAt".
+      const show = L => (Case.get() === 'mixed' ? L.toLowerCase() : Case.glyph(L));
+      const glyphs = letters.map(show);
+      const all = [answer, ...spare];
+      const lower = Case.glyphs('A', all.length).map(g => g === 'a');
+      const tray = shuffle(all.map((L, i) => ({ letter: L, glyph: lower[i] ? L.toLowerCase() : L })));
+
+      let wrong = 0, busy = false, filled = false;
+      $('#word-prompt').textContent = 'Finish the word';
+      setStars(round, ROUNDS);
+      const card = $('#word-target');
+      card.className = 'target-card word';
+      card.textContent = '_' + glyphs.slice(1).join('');
+      // Not the answer letter's colour, the way Build-the-word colours its card:
+      // the tray tiles are coloured per letter, so that would give the answer away.
+      card.style.setProperty('--c', '#ff8a00');
+      replay(card, 'pulse');
+      // The word has to be said: the picture names it, but the child can't read
+      // what's left of it, and the missing letter is the whole question.
+      const sayWord = () => Voice.say(`${word}!`, { key: `word-${word}` });
+      const say = () => { Voice.say('Finish the word! Which letter is missing?', { key: 'words-finish' }); later(sayWord, 2400); };
+      card.onclick = say;
+      say();
+
+      el.className = 'word-area finish';
+      el.innerHTML = `<div class="word-pic">${pic}</div>
+        <div class="word-slots">${glyphs.map((g, i) => (i === 0
+          ? '<div class="wslot gap next"></div>'
+          : `<div class="wslot given"><span class="wghost">${g}</span></div>`)).join('')}</div>
+        <div class="word-tray"></div>`;
+      const gap = el.querySelector('.wslot.gap'), trayEl = el.querySelector('.word-tray');
+      // Tapping the picture is how a child asks "what is it again?".
+      el.querySelector('.word-pic').addEventListener('pointerdown', e => { e.preventDefault(); if (!filled) { Sfx.tap(); sayWord(); } });
+
+      tray.forEach((tile, i) => {
+        const b = document.createElement('button');
+        b.className = 'wtile';
+        b.textContent = tile.glyph;
+        b.style.setProperty('--c', CHAR_BY_LETTER[tile.letter].color);
+        b.style.animationDelay = (i * 70) + 'ms';
+        b.addEventListener('pointerdown', e => { e.preventDefault(); tap(tile, b); });
+        tile.el = b;
+        trayEl.appendChild(b);
+      });
+
+      function tap(tile, node) {
+        if (!running || busy || filled) return;
+        if (Case.same(tile.glyph, answer)) { place(tile, node); return; }
+        wrong++;
+        Sfx.boing();
+        replay(node, 'wobble');
+        if (wrong === 1) Voice.say('Not quite. Try again!', { key: 'words-try' });
+        // The same forgiving idiom as the rest: after two misses, show them.
+        if (wrong >= 2) tray.forEach(t => { if (Case.same(t.glyph, answer)) t.el.classList.add('hint'); });
+      }
+
+      function place(tile, node) {
+        busy = true; filled = true;
+        // Fly the tile into the gap, then let the slot's own glyph take over, so
+        // the finished word reads in one case whichever tile was tapped.
+        const from = node.getBoundingClientRect(), to = gap.getBoundingClientRect();
+        const fly = node.cloneNode(true);
+        fly.className = 'wtile wfly';
+        fly.style.setProperty('--c', node.style.getPropertyValue('--c'));
+        fly.style.left = from.left + 'px'; fly.style.top = from.top + 'px';
+        fly.style.width = from.width + 'px'; fly.style.height = from.height + 'px';
+        document.body.appendChild(fly);
+        node.classList.add('spent');
+        tray.forEach(t => t.el.classList.remove('hint'));
+        requestAnimationFrame(() => {
+          fly.style.transform = `translate(${to.left + to.width / 2 - from.left - from.width / 2}px,${to.top + to.height / 2 - from.top - from.height / 2}px) scale(${to.height / from.height})`;
+        });
+        later(() => {
+          fly.remove();
+          // 'filled', not 'given': the letter the child put there is the one in
+          // its friend's colour, the rest stay ink.
+          gap.className = 'wslot filled';
+          gap.style.setProperty('--c', CHAR_BY_LETTER[answer].color);
+          gap.innerHTML = `<span class="wghost">${show(answer)}</span>`;
+          card.textContent = glyphs.join('');
+          Sfx.click(); Sfx.sparkle();
+          const c = centre(gap); Fx.burst(c.x, c.y, CHAR_BY_LETTER[answer].color, 20);
+          setStars(round + 1, ROUNDS);
+          busy = false;
+          solved();
+        }, 360);
+      }
+
+      // Read the whole word back, a letter at a time, then say it.
+      function solved() {
+        const slots = Array.from(el.querySelectorAll('.wslot'));
+        slots.forEach((s, i) => later(() => {
+          replay(s, 'lit');
+          Voice.say(`${letters[i]}!`, { key: `${letters[i]}-tick` });
+        }, 400 + i * 650));
+        const end = 400 + slots.length * 650;
+        later(() => { el.classList.add('done'); Sfx.correct(); sayWord(); }, end);
+        round++;
+        later(() => (round >= ROUNDS ? win() : ask()), end + 1600);
+      }
+    }
+
+    function win() {
+      el.className = 'word-area done';
+      el.innerHTML = '';
+      $('#word-prompt').textContent = 'Word Town';
+      Sfx.fanfare(); Fx.confetti(70);
+      timers.push(setTimeout(() => Fx.confetti(50), 600));
+      Voice.say('Brilliant! You did it!', { key: 'words-done' });
       timers.push(setTimeout(() => { running = false; onDone(); }, 2400));
     }
 

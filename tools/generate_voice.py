@@ -52,6 +52,18 @@ def load_train_words():
     return re.findall(r"'([a-z]+)'", block)
 
 
+def load_picture_words():
+    """The words Finish-the-Word shows a picture of (PICTURE_WORDS in js/data.js)."""
+    text = DATA_JS.read_text(encoding="utf-8")
+    block = text.split("const PICTURE_WORDS = [", 1)[1].split("\n];", 1)[0]
+    return re.findall(r"word:\s*'([a-z]+)'", block)
+
+
+def load_words():
+    """Every word the game says aloud, from both lists, in order and deduped."""
+    return list(dict.fromkeys(load_train_words() + load_picture_words()))
+
+
 def build_lines(chars):
     """Returns a list of (key, text) — must match every Voice.say() call site
     in js/app.js, js/games.js and js/town.js."""
@@ -60,11 +72,12 @@ def build_lines(chars):
         ("monster-yuck", "Yuck! Not that one!"),
         ("words-hub", "Welcome to Word Town! Pick a game!"),
         ("words-build", "Build the word!"),
+        ("words-finish", "Finish the word! Which letter is missing?"),
         ("words-try", "Not quite. Try again!"),
         ("words-done", "Brilliant! You did it!"),
         ("words-locked", "Collect all the letters first, then Word Town will open!"),
     ]
-    lines += [(f"word-{w}", f"{w.capitalize()}!") for w in load_train_words()]
+    lines += [(f"word-{w}", f"{w.capitalize()}!") for w in load_words()]
     for c in chars:
         L, name, sound = c["letter"], c["name"], c["sound"]
         lines += [
