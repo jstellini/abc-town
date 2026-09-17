@@ -146,9 +146,12 @@ The setting is a grown-up's preference rather than progress, so resetting progre
   y=80 baseline, y=94 descender, round letters r=19 about y=61. Keep to those and a new letter
   will sit with the rest. Lowercase ink is drawn thinner (`.build.lower` in the CSS), since the
   uppercase width across a 38-tall x-height swallows the letter.
-- **Painted letter** – `paintGame` measures the glyph the font actually drew and scales it to
-  fill the canvas, so lowercase and descenders fit without per-letter tweaking, and a small
-  letter like `o` still gets as much paintable area as `A`.
+- **Painted letter** – `paintGame` scales the glyph to fill the canvas, so lowercase and
+  descenders fit without per-letter tweaking. It measures the glyph's *ink* with the canvas
+  `measureText` metrics, not `getBBox()`: on an SVG `<text>` that returns the font's layout box
+  (ascent to descent), which is as tall for `a` as for `A` and would leave lowercase at half
+  size. The star goal counts only pattern pieces with a real footprint inside the letter — a
+  piece clipped to a sliver stays paintable but never gates finishing.
 - **Which games play** – `OTHER_GAMES` in `js/app.js` is the rotation order (Build-a-Letter always
   comes last, and twice in mixed mode – see `startGames`). The rotation position is stored with
   progress, so resetting progress restarts it. `Games.play` takes an optional `{ form }` to pin

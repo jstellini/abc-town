@@ -561,7 +561,8 @@ const Games = (() => {
       const step = pattern === 'dots' ? 14 : 22, r = pattern === 'dots' ? 4.5 : 8;
       for (let y = 4; y < 99; y += step) for (let x = 4; x < 99; x += step) shapes.push(`<circle class="region" cx="${x + rand(-3, 3)}" cy="${y + rand(-3, 3)}" r="${r + rand(-1, 1)}"/>`);
     }
-    const glyph = `x="50" y="50" text-anchor="middle" font-size="90"`;
+    const SIZE = 90;
+    const glyph = `x="50" y="50" text-anchor="middle" font-size="${SIZE}"`;
     el.innerHTML = `<div class="pots">${LETTER_COLORS.map((c, i) => `<button class="pot${i ? '' : ' sel'}" style="--c:${c}" aria-label="paint"></button>`).join('')}</div>
       <div class="canvas"><svg viewBox="0 0 100 100">
         <defs><clipPath id="paint-clip"><text ${glyph}>${form}</text></clipPath></defs>
@@ -571,25 +572,42 @@ const Games = (() => {
       <button class="paint-done hidden" aria-label="Done">✓</button>`;
     const svg = el.querySelector('svg');
 
-    // Fit whatever glyph the font drew into the box rather than trusting a fixed
-    // baseline: lowercase sits higher and g/j/p/q/y hang below it. Measuring also
-    // means a small letter like 'o' is scaled up to the same paintable area as 'A'.
-    const outline = el.querySelector('text.outline'), bb = outline.getBBox();
-    const s = Math.min(86 / bb.width, 86 / bb.height);
-    const fit = `translate(${50 - s * (bb.x + bb.width / 2)} ${50 - s * (bb.y + bb.height / 2)}) scale(${s})`;
+    // Fit the glyph to the box rather than trusting a fixed baseline: lowercase
+    // sits higher and g/j/p/q/y hang below it. Measure the INK, not getBBox() --
+    // on <text> that returns the font's layout box (ascent to descent), which is
+    // just as tall for 'a' as for 'A' and would leave lowercase at half size.
+    const outline = el.querySelector('text.outline'), cs = getComputedStyle(outline);
+    const ink = (() => {
+      const c = document.createElement('canvas').getContext('2d');
+      c.font = `${cs.fontWeight || 700} ${SIZE}px ${cs.fontFamily}`;
+      c.textAlign = 'center';
+      const m = c.measureText(form);
+      const up = m.actualBoundingBoxAscent, down = m.actualBoundingBoxDescent;
+      if (!(up + down)) return outline.getBBox(); // no ink metrics -- layout box will do
+      return { x: 50 - m.actualBoundingBoxLeft, y: 50 - up,
+               width: m.actualBoundingBoxLeft + m.actualBoundingBoxRight, height: up + down };
+    })();
+    const s = Math.min(86 / ink.width, 86 / ink.height);
+    const fit = `translate(${50 - s * (ink.x + ink.width / 2)} ${50 - s * (ink.y + ink.height / 2)}) scale(${s})`;
     el.querySelectorAll('svg text').forEach(t => t.setAttribute('transform', fit));
 
-    // Drop pattern pieces that fall entirely outside the letter.
-    el.querySelectorAll('.region:not(.body)').forEach(s => {
-      const m = s.getScreenCTM(), pt = svg.createSVGPoint();
-      const samples = s.tagName === 'circle'
-        ? [[+s.getAttribute('cx'), +s.getAttribute('cy')]]
-        : Array.from({ length: 16 }, (_, i) => [-60 + i * 14, +s.getAttribute('y') + 3.25]);
-      const hit = samples.some(([x, y]) => { pt.x = x; pt.y = y; const p = pt.matrixTransform(m); return document.elementFromPoint(p.x, p.y) === s; });
-      if (!hit) s.remove();
+    // Drop pattern pieces that fall outside the letter, and count the ones with a
+    // real footprint inside it. A piece clipped to a sliver stays paintable, but
+    // must not count towards the goal -- needing one to finish is what made the
+    // game impossible to complete.
+    let solid = 1; // the background under the pattern; every pattern leaves gaps
+    el.querySelectorAll('.region:not(.body)').forEach(node => {
+      const m = node.getScreenCTM(), pt = svg.createSVGPoint();
+      const circle = node.tagName === 'circle';
+      const samples = circle
+        ? (([cx, cy, r]) => [[cx, cy], [cx - r, cy], [cx + r, cy], [cx, cy - r], [cx, cy + r]])
+            ([+node.getAttribute('cx'), +node.getAttribute('cy'), +node.getAttribute('r') * 0.6])
+        : Array.from({ length: 16 }, (_, i) => [-60 + i * 14, +node.getAttribute('y') + 3.25]);
+      const hits = samples.filter(([x, y]) => { pt.x = x; pt.y = y; const p = pt.matrixTransform(m); return document.elementFromPoint(p.x, p.y) === node; }).length;
+      if (!hits) node.remove();
+      else if (hits >= 3) solid++;
     });
-    const regions = Array.from(el.querySelectorAll('.region'));
-    GOAL = Math.min(GOAL, regions.length); setStars(0, GOAL);
+    GOAL = Math.max(1, Math.min(GOAL, solid)); setStars(0, GOAL);
 
     let colour = LETTER_COLORS[0], running = true, down = false;
     const painted = new Set();
