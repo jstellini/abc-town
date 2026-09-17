@@ -736,13 +736,17 @@ const Games = (() => {
       const dt = Math.min(0.05, (t - last) / 1000) || 0; last = t; time += dt;
       if (running) { spawnT += dt; if (spawnT > 1.1) { spawnT = 0; spawn(); } }
       const w = W(), h = H();
+      // The mouth doesn't move within a frame, so read it once up front rather
+      // than per flying snack – that read sat between transform writes and forced
+      // a synchronous layout for every item in flight.
+      const mouth0 = items.some(o => o.state === 'fly') ? mouthPos() : null;
       for (const o of items) {
         if (o.state === 'gone' || o.state === 'held') continue;
         if (o.state === 'drift') {
           o.x += o.vx * dt; o.y = o.by + Math.sin(time * 2 + o.phase) * o.amp;
         } else if (o.state === 'fly') {
           o.t = Math.min(1, o.t + dt / 0.4);
-          const e = 1 - Math.pow(1 - o.t, 3), m = mouthPos();
+          const e = 1 - Math.pow(1 - o.t, 3), m = mouth0;
           o.x = o.x0 + (m.x - o.x0) * e; o.y = o.y0 + (m.y - o.y0) * e;
           o.s = 1 - 0.45 * e;
           if (o.t >= 1) { arrive(o); continue; }

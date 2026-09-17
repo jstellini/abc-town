@@ -126,7 +126,10 @@
 
   <!-- Town: three screens wide (farm, square, park) – drag or use the arrows to scroll -->
   <section id="screen-town" class="screen">
-    <div id="town-view" class="town-view">
+    <!-- Starts parked: the scenery is static markup, so without this its ~40
+         infinite animations run from page load on every screen, even for a child
+         who never opens the town. Town.enter() unparks it. -->
+    <div id="town-view" class="town-view parked">
       <div class="sky"></div>
       <div class="stars" id="stars"></div>
       <div class="sun"></div>
