@@ -41,6 +41,7 @@ def main():
     p.add_argument("--silence-thresh", type=int, default=-40, help="dBFS below which audio counts as silence (default -40)")
     p.add_argument("--min-silence-ms", type=int, default=900, help="minimum gap length to treat as a split point (default 900)")
     p.add_argument("--pad-ms", type=int, default=150, help="padding kept around each chunk (default 150)")
+    p.add_argument("--min-chunk-ms", type=int, default=500, help="discard detected chunks shorter than this -- filters out breath/click noises (default 500)")
     p.add_argument("--only", help="comma-separated letters to write, matched in order to the chunks found (default: A..Z)")
     args = p.parse_args()
 
@@ -55,6 +56,12 @@ def main():
         min_silence_len=args.min_silence_ms,
         silence_thresh=args.silence_thresh,
     )
+    dropped = [(s, e) for s, e in ranges if e - s < args.min_chunk_ms]
+    ranges = [(s, e) for s, e in ranges if e - s >= args.min_chunk_ms]
+    if dropped:
+        print(f"Dropped {len(dropped)} chunk(s) shorter than {args.min_chunk_ms}ms (likely breath/click noise):")
+        for start, end in dropped:
+            print(f"  {fmt_ts(start)} - {fmt_ts(end)}  ({(end - start) / 1000:.2f}s)")
 
     letters = [l.strip().upper() for l in args.only.split(",")] if args.only else LETTERS
 
@@ -73,13 +80,24 @@ def main():
         )
         sys.exit(1)
 
+    durations = [e - s for s, e in ranges]
+    median_dur = sorted(durations)[len(durations) // 2]
+
     REC_DIR.mkdir(exist_ok=True)
+    long_chunks = []
     for (start, end), letter in zip(ranges, letters):
         chunk = audio[max(0, start - args.pad_ms): end + args.pad_ms]
         out_path = REC_DIR / f"{letter}.wav"
         chunk.export(out_path, format="wav")
-        print(f"  wrote {out_path.name}")
+        dur = end - start
+        flag = ""
+        if dur > median_dur * 1.7:
+            flag = "  <-- much longer than the others; may be a fluffed take + retry fused together, listen and re-record if so"
+            long_chunks.append(letter)
+        print(f"  wrote {out_path.name}  ({dur / 1000:.1f}s){flag}")
 
+    if long_chunks:
+        print(f"\nCheck these before trusting them: {', '.join(long_chunks)}")
     print(f"\nDone. Now run: python tools/apply_intro_recordings.py")
 
 
