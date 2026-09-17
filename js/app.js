@@ -109,8 +109,13 @@ const App = (() => {
     const firstTime = !isUnlocked(c.letter);
     progress.unlocked[c.letter] = true;
     save();
-    $('#reveal-letter').textContent = c.letter;
-    $('#reveal-letter').style.setProperty('--c', c.color);
+    // Show the letter in whichever form the case mode is teaching – both, side by
+    // side like the intro card, when that is big and little together.
+    const rl = $('#reveal-letter'), mixed = Case.get() === 'mixed';
+    rl.classList.toggle('two', mixed);
+    if (mixed) rl.innerHTML = `<span class="up">${c.letter}</span><span class="low">${c.letter.toLowerCase()}</span>`;
+    else rl.textContent = Case.label(c.letter);
+    rl.style.setProperty('--c', c.color);
     $('#reveal-char img').src = c.img;
     $('#reveal-name').textContent = c.name;
     $('#reveal-badge').textContent = firstTime ? 'New friend!' : 'Welcome back!';
