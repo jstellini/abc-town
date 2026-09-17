@@ -75,8 +75,11 @@ const App = (() => {
     setTimeout(() => el.classList.remove('show'), ms);
   }
   // Every letter plays the next two games from this rotation (the position is
-  // saved with progress), then Build-a-Letter to finish.
-  const OTHER_GAMES = ['find', 'pop', 'magnet', 'train', 'ice', 'paint', 'monster'];
+  // saved with progress), then Build-a-Letter to finish. The rotation steps on by
+  // STRIDE each play: three, not two, so the pair a letter gets keeps changing
+  // even though the list is now an even length.
+  const OTHER_GAMES = ['find', 'pop', 'magnet', 'train', 'ice', 'paint', 'monster', 'word'];
+  const STRIDE = 3;
   function startGames() {
     const c = current;
     const n = progress.plays || 0;
@@ -87,8 +90,8 @@ const App = (() => {
       ? [{ type: 'build', form: c.letter }, { type: 'build', form: c.letter.toLowerCase() }]
       : [{ type: 'build' }];
     const seq = [
-      { type: OTHER_GAMES[(2 * n) % OTHER_GAMES.length] },
-      { type: OTHER_GAMES[(2 * n + 1) % OTHER_GAMES.length] },
+      { type: OTHER_GAMES[(STRIDE * n) % OTHER_GAMES.length] },
+      { type: OTHER_GAMES[(STRIDE * n + 1) % OTHER_GAMES.length] },
       ...builds,
     ];
     show('game');

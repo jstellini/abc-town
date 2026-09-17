@@ -121,3 +121,28 @@ const TRAIN_WORDS = [
   'cow', 'bat', 'log', 'nut', 'red', 'fan', 'lip', 'tub', 'wig', 'zoo', 'six', 'vet', 'ice', 'arm',
   'leg', 'hug', 'mop', 'pot', 'bee', 'sea', 'sky', 'run',
 ];
+
+// Picture words for Finish-the-Word: a word and the picture that gives it away.
+// The game hides the letter being learned, so every letter needs at least one
+// word containing it – Q only manages that in a longer word, there being no
+// three-letter ones. Each word needs a "word-<word>" voice clip, so after adding
+// one run `python tools/generate_voice.py --missing` (the script reads this list
+// as well as TRAIN_WORDS, and warns about any letter left without a word).
+const PICTURE_WORDS = [
+  { word: 'ant',    pic: '🐜' }, { word: 'arm',    pic: '💪' }, { word: 'bat',    pic: '🦇' },
+  { word: 'bed',    pic: '🛏️' }, { word: 'bee',    pic: '🐝' }, { word: 'box',    pic: '📦' },
+  { word: 'bug',    pic: '🐛' }, { word: 'bus',    pic: '🚌' }, { word: 'car',    pic: '🚗' },
+  { word: 'cat',    pic: '🐱' }, { word: 'cow',    pic: '🐄' }, { word: 'cup',    pic: '🥤' },
+  { word: 'dog',    pic: '🐶' }, { word: 'egg',    pic: '🥚' }, { word: 'fish',   pic: '🐟' },
+  { word: 'five',   pic: '5️⃣' }, { word: 'fox',    pic: '🦊' }, { word: 'frog',   pic: '🐸' },
+  { word: 'goat',   pic: '🐐' }, { word: 'hat',    pic: '🎩' }, { word: 'hen',    pic: '🐔' },
+  { word: 'ice',    pic: '🧊' }, { word: 'jam',    pic: '🍯' }, { word: 'jet',    pic: '✈️' },
+  { word: 'key',    pic: '🔑' }, { word: 'kid',    pic: '🧒' }, { word: 'leaf',   pic: '🍃' },
+  { word: 'leg',    pic: '🦵' }, { word: 'lip',    pic: '👄' }, { word: 'map',    pic: '🗺️' },
+  { word: 'nut',    pic: '🥜' }, { word: 'owl',    pic: '🦉' }, { word: 'pen',    pic: '🖊️' },
+  { word: 'pig',    pic: '🐷' }, { word: 'pot',    pic: '🍲' }, { word: 'quack',  pic: '🦆' },
+  { word: 'queen',  pic: '👑' }, { word: 'ring',   pic: '💍' }, { word: 'sea',    pic: '🌊' },
+  { word: 'six',    pic: '6️⃣' }, { word: 'sky',    pic: '🌤️' }, { word: 'sun',    pic: '☀️' },
+  { word: 'toy',    pic: '🧸' }, { word: 'tub',    pic: '🛁' }, { word: 'van',    pic: '🚐' },
+  { word: 'web',    pic: '🕸️' }, { word: 'zip',    pic: '🤐' }, { word: 'zoo',    pic: '🦁' },
+];

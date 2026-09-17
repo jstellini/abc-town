@@ -56,9 +56,14 @@ so nothing depends on any one PC.
 - **Feed the monster** – a hungry monster shows the letter it wants in a bubble. Letter snacks
   drift across the sky; tap one (or drag it to the mouth) to feed it. Five right ones fill him up.
   A wrong one gets chewed, then spat out spinning – "Yuck! Not that one!"
+- **Finish the word** – a picture with its word underneath and one letter missing: the letter
+  being learned. Tap (or drag) it from the three tiles into the gap and the word lights up
+  letter by letter as it is read out, then says itself – *"c, a, t… Cat!"*. Three pictures to
+  win; tap the picture to hear the word again.
 
 Each letter plays the next two games from the rotation (Find → Pop → Magnets → Train → Ice →
-Paint → Monster, advancing two steps per play), then finishes with Build-a-Letter.
+Paint → Monster → Word, advancing three steps per play so the pairings keep changing), then
+finishes with Build-a-Letter.
 - **Reveal** – confetti, fanfare, the character bounces in: *"A is for Apple!"*
 - **Town** – three screens wide: the **farm**, the **square** and the **park**. Drag the scenery
   (or tap the ◀ ▶ arrows) to scroll; the hills and clouds slide slower for depth. Unlocked
@@ -108,6 +113,9 @@ minigames show:
   child has to recognise that `A` and `a` are the same letter. Either form counts as
   correct, and the target card shows both.
 
+Finish-the-Word writes each word in one case throughout; in mixed mode only the tile that
+fills the gap can turn up in the other form, so `c` really does finish `CAT`.
+
 Build-a-Letter and Paint-the-Letter only ever show one letter, so there is nothing to
 match against. Paint picks a form at random in mixed mode; Build instead plays **twice**,
 the big letter then the little one, so the child assembles both shapes of the same letter
@@ -131,7 +139,7 @@ The setting is a grown-up's preference rather than progress, so resetting progre
   `js/voice-manifest.js` from scratch. After adding a game or a new line, run it with `--missing`
   to generate only the clips that don't exist yet. The manifest only ever lists clips that are
   really on disk, and the script warns about any line that will fall back to browser TTS.
-- **Difficulty** – `ROUNDS` (find) and `GOAL` (pop / magnet / train / ice / monster) in `js/games.js`; `HITS` (ice) is taps per block; balloon count is the
+- **Difficulty** – `ROUNDS` (find / word) and `GOAL` (pop / magnet / train / ice / monster) in `js/games.js`; `HITS` (ice) is taps per block; balloon count is the
   `distractors(L, 5)` call; bubble spawn rate is the `spawnT > 1.0` check; distractor counts for
   magnet and train are their `distractors(L, n)` calls.
 - **Letter case** – `js/case.js`. `Case.glyph()` / `Case.glyphs()` pick the form to draw and
@@ -153,11 +161,17 @@ The setting is a grown-up's preference rather than progress, so resetting progre
   size. The star goal counts only pattern pieces with a real footprint inside the letter — a
   piece clipped to a sliver stays paintable but never gates finishing.
 - **Which games play** – `OTHER_GAMES` in `js/app.js` is the rotation order (Build-a-Letter always
-  comes last, and twice in mixed mode – see `startGames`). The rotation position is stored with
+  comes last, and twice in mixed mode – see `startGames`). Each play takes two games and steps
+  `STRIDE` (3) along the list; the stride only has to be coprime with the number of games, which
+  is what keeps the pairs from repeating. The rotation position is stored with
   progress, so resetting progress restarts it. `Games.play` takes an optional `{ form }` to pin
   Build to a particular case; without it the game follows the case mode.
 - **Train words** – `TRAIN_WORDS` in `js/data.js`. Adding one needs its voice clip: run
   `python tools/generate_voice.py --missing`.
+- **Picture words** – `PICTURE_WORDS` in `js/data.js`: the word and the emoji Finish-the-Word
+  shows it with. The game only offers words that contain the letter being learned, preferring
+  the ones that start with it, so every letter needs at least one (the voice script warns if a
+  letter loses its last word). A new word needs its clip: `python tools/generate_voice.py --missing`.
 - **Town behaviour** – `js/town.js`: `GROUND_TOP/BOT` (where characters can stand),
   `convoDist()` (how close they must be to chat), `roamTarget()` (how far they wander), and the
   `react()` switch for tap animations. The town is `.town-stage { width: 300% }` in `css/style.css`;
@@ -190,12 +204,12 @@ The setting is a grown-up's preference rather than progress, so resetting progre
 ```
 index.html          screens
 css/style.css       all styling + animations
-js/data.js          the 26 characters (names, sounds, reactions) + letter stroke pieces
+js/data.js          the 26 characters (names, sounds, reactions), letter stroke pieces + word lists
 js/case.js          uppercase / lowercase / mixed letter mode
 js/voice-manifest.js  key → mp3 lookup for the recorded voice lines (auto-generated)
 js/audio.js         Web Audio sound effects + voice playback (recorded clips, TTS fallback)
 js/fx.js            sparkle / confetti particles
-js/games.js         the eight minigames
+js/games.js         the nine minigames
 js/town.js          town square simulation, drag & tap
 js/app.js           screen flow, progress, grown-ups panel
 assets/voice/       recorded voice-over clips (mp3)

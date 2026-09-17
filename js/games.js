@@ -1,5 +1,5 @@
 // The minigames: find, pop, magnet (fridge hunt), build (assemble the letter), train, ice (smash blocks),
-// paint, monster (feed the letter monster).
+// paint, monster (feed the letter monster), word (drop the missing letter into a picture word).
 // Games.play(type, character, onDone) runs one; Games.stop() aborts it.
 
 const Games = (() => {
@@ -763,7 +763,118 @@ const Games = (() => {
     return { stop() { running = false; cancelAnimationFrame(raf); } };
   }
 
-  const GAMES = { find: findGame, pop: popGame, magnet: magnetGame, build: buildGame, train: trainGame, ice: iceGame, paint: paintGame, monster: monsterGame };
+  // ---------- Game 9: Finish the word ----------
+  // A picture with its word underneath and one letter missing – the letter being
+  // learned. Drop that letter into the gap and the word is read back letter by
+  // letter, then said. Three pictures to win.
+  function wordGame(ch, onDone) {
+    const L = ch.letter, ROUNDS = 3;
+    const el = area(); el.className = 'game-area word';
+    setPrompt('Finish the word', L, ch.color); setStars(0, ROUNDS);
+    const say = () => Voice.say(`Let's finish the words! Find the missing letter ${L}!`, { key: `${L}-word` });
+    say(); $('#game-target').onclick = say;
+
+    // Words that really contain the letter, shuffled so the three rounds show three
+    // different pictures wherever the letter has that many (Q has two), with the
+    // words that *start* with it first: "C is for cat" beats finding the c in quack.
+    const starts = p => (p.word[0].toUpperCase() === L ? 0 : 1);
+    const pool = shuffle(PICTURE_WORDS.filter(p => p.word.toUpperCase().includes(L)))
+      .sort((a, b) => starts(a) - starts(b));
+    let round = 0, wrong = 0, alive = true, answered = false;
+    const timers = [];
+    const later = (fn, ms) => timers.push(setTimeout(() => { if (alive) fn(); }, ms));
+    // Every letter has a picture word (see PICTURE_WORDS); skip rather than hang
+    // if that ever stops being true.
+    if (!pool.length) { later(onDone, 300); return { stop() { alive = false; } }; }
+
+    function newRound(first) {
+      const { word, pic } = pool[round % pool.length];
+      const gapAt = pick([...word].map((c, i) => (c.toUpperCase() === L ? i : -1)).filter(i => i >= 0));
+      // The word itself keeps one case throughout – only the answer tile can turn
+      // up in the other form, which is the whole point of mixed mode.
+      const low = Case.get() === 'lower' || (Case.get() === 'mixed' && Math.random() < 0.5);
+      const cols = shuffle([...LETTER_COLORS]);
+      const tray = shuffle([Case.glyph(L), ...distractors(L, 2)]);
+      el.innerHTML = `<div class="word-card" style="--c:${ch.color}">
+          <div class="word-pic">${pic}</div>
+          <div class="word-letters">${[...word].map((c, i) => i === gapAt
+            ? '<span class="wl gap"></span>'
+            : `<span class="wl">${low ? c : c.toUpperCase()}</span>`).join('')}</div>
+        </div>
+        <div class="word-tray">${tray.map((g, i) => `<button class="wtile" data-l="${g}" style="--c:${cols[i % cols.length]};--d:${i * 90}ms"><span class="inner">${g}</span></button>`).join('')}</div>`;
+
+      const card = el.querySelector('.word-card'), gapEl = el.querySelector('.wl.gap');
+      const trayEl = el.querySelector('.word-tray'), tiles = Array.from(el.querySelectorAll('.wtile'));
+      const sayWord = () => Voice.say(`${word}!`, { key: `word-${word}` });
+      answered = false;
+      // Round one waits for "find the missing letter A!" to finish first.
+      later(sayWord, first ? 3200 : 500);
+      el.querySelector('.word-pic').addEventListener('click', () => { if (!answered) { Sfx.tap(); sayWord(); } });
+      if (wrong >= 2) hint();
+
+      function hint() { tiles.forEach(t => t.classList.toggle('hint', Case.same(t.dataset.l, L))); }
+      function home(node) { node.style.transition = 'transform .3s cubic-bezier(.34,1.56,.64,1)'; node.style.transform = ''; }
+
+      function drop(node, dx, dy) {
+        // r already includes the drag, so the flight back out of it is dx/dy + the
+        // gap's offset from where the tile is sitting now.
+        const r = node.getBoundingClientRect(), g = gapEl.getBoundingClientRect();
+        const near = Math.hypot(r.left + r.width / 2 - (g.left + g.width / 2),
+                                r.top + r.height / 2 - (g.top + g.height / 2)) < g.height * 1.8;
+        // A tap means "this one" – there is only ever the one gap to fill.
+        if (Math.hypot(dx, dy) >= 10 && !near) { home(node); return; }
+        if (!Case.same(node.dataset.l, L)) {
+          wrong++; Sfx.boing();
+          replay(node.querySelector('.inner'), 'wobble'); home(node);
+          if (wrong >= 2) hint();
+          return;
+        }
+        answered = true;
+        node.style.transition = 'transform .32s cubic-bezier(.34,1.56,.64,1)';
+        node.style.transform = `translate3d(${dx + (g.left - r.left) + (g.width - r.width) / 2}px,`
+          + `${dy + (g.top - r.top) + (g.height - r.height) / 2}px,0) scale(${g.height / r.height})`;
+        Sfx.whoosh();
+        later(() => {
+          node.classList.add('gone'); trayEl.classList.add('done');
+          gapEl.textContent = node.dataset.l; gapEl.classList.add('filled');
+          const c = centre(gapEl); Fx.burst(c.x, c.y, ch.color, 16);
+          Sfx.clack(); Sfx.correct();
+          setStars(round + 1, ROUNDS);
+          readBack();
+        }, 340);
+      }
+
+      // Light each letter as it is read, then say the whole word.
+      function readBack() {
+        const wls = Array.from(el.querySelectorAll('.wl'));
+        wls.forEach((n, i) => later(() => {
+          n.classList.add('lit'); Sfx.click();
+          const up = word[i].toUpperCase();
+          Voice.say(`${up}!`, { key: `${up}-tick` });
+        }, 500 + i * 650));
+        const end = 500 + wls.length * 650;
+        const last = round + 1 >= ROUNDS;
+        later(() => { sayWord(); replay(card, 'read'); Sfx.sparkle(); }, end);
+        later(() => {
+          round++;
+          if (last) Voice.say(`${L}! You finished all the words!`, { key: `${L}-word-done` });
+          else newRound(false);
+        }, end + 1400);
+        if (last) later(onDone, end + 2600);
+      }
+
+      tiles.forEach(node => draggable(node, {
+        onStart() { if (answered) return false; node.style.transition = ''; node.classList.add('dragging'); lift(node); Sfx.tap(); },
+        onMove(dx, dy) { node.style.transform = `translate3d(${dx}px,${dy}px,0)`; },
+        onEnd(dx, dy) { node.classList.remove('dragging'); if (!answered) drop(node, dx, dy); },
+      }));
+    }
+
+    newRound(true);
+    return { stop() { alive = false; timers.forEach(clearTimeout); } };
+  }
+
+  const GAMES = { find: findGame, pop: popGame, magnet: magnetGame, build: buildGame, train: trainGame, ice: iceGame, paint: paintGame, monster: monsterGame, word: wordGame };
 
   return {
     play(type, ch, onDone, opts) {
