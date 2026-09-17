@@ -94,7 +94,25 @@ Paint → Monster, advancing two steps per play), then finishes with Build-a-Let
   tier by tier (tap again and it crumbles); the **see-saw** flips and flings the teddy sky-high.
 
 Progress is saved in the browser (localStorage). Hold the ⚙️ button for a second to open
-the grown-ups panel: test the voice, unlock everyone (for trying the town), or reset.
+the grown-ups panel: pick the letter case, test the voice, unlock everyone (for trying the
+town), or reset.
+
+### Big, little and both
+
+The **Letters** setting in the grown-ups panel chooses which form of each letter the
+minigames show:
+
+- **A (big)** – uppercase only. Where a new player starts.
+- **a (little)** – the same games in lowercase.
+- **Aa (both)** – the hard one: uppercase and lowercase letters share the screen, so the
+  child has to recognise that `A` and `a` are the same letter. Either form counts as
+  correct, and the target card shows both.
+
+Build-a-Letter and Paint-the-Letter stay uppercase for now — their glyphs come from
+hand-drawn uppercase stroke paths and a caps-tuned layout. Lowercase for those two is
+still to come.
+
+The setting is a grown-up's preference rather than progress, so resetting progress keeps it.
 
 ## Tuning
 
@@ -115,6 +133,11 @@ the grown-ups panel: test the voice, unlock everyone (for trying the town), or r
 - **Difficulty** – `ROUNDS` (find) and `GOAL` (pop / magnet / train / ice / monster) in `js/games.js`; `HITS` (ice) is taps per block; balloon count is the
   `distractors(L, 5)` call; bubble spawn rate is the `spawnT > 1.0` check; distractor counts for
   magnet and train are their `distractors(L, n)` calls.
+- **Letter case** – `js/case.js`. `Case.glyph()` / `Case.glyphs()` pick the form to draw and
+  `Case.same()` is the "is this the target?" test every game uses, so `A` and `a` count as one
+  letter in mixed mode. Games track their target as the uppercase letter throughout and keep
+  the uppercase voice keys (the letter is spoken the same either way), so adding a case mode
+  needs no new recordings.
 - **Letter pieces** – `LETTER_STROKES` in `js/data.js`: each uppercase letter as SVG path strokes
   in a 100×100 box. Split a stroke in two for more pieces, or merge for fewer.
 - **Which games play** – `OTHER_GAMES` in `js/app.js` is the rotation order (Build-a-Letter always
@@ -152,6 +175,7 @@ the grown-ups panel: test the voice, unlock everyone (for trying the town), or r
 index.html          screens
 css/style.css       all styling + animations
 js/data.js          the 26 characters (names, sounds, reactions) + letter stroke pieces
+js/case.js          uppercase / lowercase / mixed letter mode
 js/voice-manifest.js  key → mp3 lookup for the recorded voice lines (auto-generated)
 js/audio.js         Web Audio sound effects + voice playback (recorded clips, TTS fallback)
 js/fx.js            sparkle / confetti particles

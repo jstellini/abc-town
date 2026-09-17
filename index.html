@@ -190,6 +190,14 @@
       <h2>Grown-ups</h2>
       <p>Characters collected: <b id="pp-count">0</b> / 26</p>
       <p class="muted">Voice: <span id="pp-voice-name"></span></p>
+      <div class="pp-field">
+        <span class="pp-label">Letters</span>
+        <div id="pp-case" class="seg">
+          <button class="seg-btn" data-case="upper">A<small>big</small></button>
+          <button class="seg-btn" data-case="lower">a<small>little</small></button>
+          <button class="seg-btn" data-case="mixed">Aa<small>both</small></button>
+        </div>
+      </div>
       <button id="pp-voice" class="pp-btn">🔊 Test the voice</button>
       <button id="pp-unlock" class="pp-btn">🔓 Unlock everyone (for testing)</button>
       <button id="pp-reset" class="pp-btn danger">🗑 Reset progress</button>
@@ -201,6 +209,7 @@
 </div>
 
 <script src="js/data.js"></script>
+<script src="js/case.js"></script>
 <script src="js/voice-manifest.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/fx.js"></script>

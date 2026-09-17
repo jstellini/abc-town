@@ -12,6 +12,7 @@ const App = (() => {
     try { const p = JSON.parse(localStorage.getItem(KEY)); if (p && p.unlocked) return p; } catch (e) { /* fresh start */ }
     return { unlocked: {} };
   }
+  function applyCase() { Case.set(progress.case || 'upper'); }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(progress)); } catch (e) { /* private mode etc. */ } }
   function isUnlocked(letter) { return !!progress.unlocked[letter]; }
   function unlockedCount() { return Object.keys(progress.unlocked).length; }
@@ -115,6 +116,7 @@ const App = (() => {
   function openParent() {
     $('#pp-count').textContent = unlockedCount();
     $('#pp-voice-name').textContent = Voice.voiceName();
+    $$('#pp-case .seg-btn').forEach(b => b.classList.toggle('sel', b.dataset.case === Case.get()));
     $('#parent-panel').classList.remove('hidden');
   }
   function holdToOpen(btn, ms, fn) {
@@ -165,6 +167,7 @@ const App = (() => {
 
   function init() {
     Fx.init();
+    applyCase();
     checkA2HS();
     $('#btn-start').addEventListener('click', () => {
       Sfx.unlock(); Voice.init();
@@ -184,8 +187,14 @@ const App = (() => {
     holdToOpen($('#btn-parent'), 1200, openParent);
     $('#pp-close').addEventListener('click', () => $('#parent-panel').classList.add('hidden'));
     $('#pp-voice').addEventListener('click', () => Voice.say(introPhrase(CHARACTERS[0]), { key: `${CHARACTERS[0].letter}-intro` }));
+    $$('#pp-case .seg-btn').forEach(b => b.addEventListener('click', () => {
+      Sfx.tap();
+      progress.case = b.dataset.case; save(); applyCase();
+      $$('#pp-case .seg-btn').forEach(q => q.classList.toggle('sel', q === b));
+    }));
     $('#pp-unlock').addEventListener('click', () => { CHARACTERS.forEach(c => progress.unlocked[c.letter] = true); save(); buildHome(); $('#pp-count').textContent = unlockedCount(); });
-    $('#pp-reset').addEventListener('click', () => { if (confirm('Reset all progress?')) { progress = { unlocked: {} }; save(); buildHome(); $('#pp-count').textContent = 0; } });
+    // The case setting is a grown-up's preference, not progress – it survives a reset.
+    $('#pp-reset').addEventListener('click', () => { if (confirm('Reset all progress?')) { progress = { unlocked: {}, case: progress.case }; save(); buildHome(); $('#pp-count').textContent = 0; } });
 
     // Keep iOS from scrolling / zooming the page under the game.
     document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });

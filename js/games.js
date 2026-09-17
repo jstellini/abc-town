@@ -15,16 +15,25 @@ const Games = (() => {
   function setStars(n, total) {
     $('#game-stars').innerHTML = Array.from({ length: total }, (_, i) => `<span class="star${i < n ? ' on' : ''}">★</span>`).join('');
   }
-  function setPrompt(text, letter, color) {
+  // `label` overrides what the target card shows – Build and Paint pass their own,
+  // since they stay uppercase while the rest of the games follow the case mode.
+  function setPrompt(text, letter, color, label = Case.label(letter)) {
     $('#game-prompt').textContent = text;
     const t = $('#game-target');
-    t.textContent = letter;
+    t.textContent = label;
+    t.classList.toggle('two', label.length > 1);
     t.style.setProperty('--c', color);
     t.classList.remove('pulse'); void t.offsetWidth; t.classList.add('pulse');
   }
   function distractors(letter, n) {
     const out = [];
-    while (out.length < n) { const l = pick(ALL_LETTERS); if (l !== letter && !out.includes(l)) out.push(l); }
+    while (out.length < n) {
+      const l = pick(ALL_LETTERS);
+      // In mixed mode 'a' is a *right* answer when the target is 'A', so the
+      // target's other case must never turn up as a wrong one.
+      if (Case.same(l, letter) || out.some(o => Case.same(o, l))) continue;
+      out.push(Case.glyph(l));
+    }
     return out;
   }
   // A floating letter: outer element is positioned by transform, inner one carries animations.
@@ -60,7 +69,7 @@ const Games = (() => {
     }
     function spawn() {
       el.innerHTML = ''; items = []; wrong = 0;
-      const letters = shuffle([L, ...distractors(L, 5)]);
+      const letters = shuffle([Case.glyph(L), ...distractors(L, 5)]);
       const colors = shuffle(LETTER_COLORS.slice());
       letters.forEach((ltr, i) => {
         const node = makeFloater('balloon', ltr, colors[i % colors.length], R * 2);
@@ -74,7 +83,7 @@ const Games = (() => {
     }
     function tap(o) {
       if (!running || o.popped) return;
-      if (o.ltr === L) {
+      if (Case.same(o.ltr, L)) {
         o.popped = true; round++;
         setStars(round, ROUNDS);
         Sfx.correct(); Sfx.sparkle();
@@ -87,7 +96,7 @@ const Games = (() => {
         wrong++; Sfx.wrong();
         o.el.classList.remove('shake'); void o.el.offsetWidth; o.el.classList.add('shake');
         // After two misses, make the right answer glow.
-        if (wrong >= 2) items.find(b => b.ltr === L).el.classList.add('hint');
+        if (wrong >= 2) items.find(b => Case.same(b.ltr, L)).el.classList.add('hint');
       }
     }
     function frame(t) {
@@ -125,7 +134,7 @@ const Games = (() => {
       // Never two targets in a row, never more than two distractors in a row.
       const isTarget = sinceTarget >= 2 || (sinceTarget >= 1 && Math.random() < 0.5);
       sinceTarget = isTarget ? 0 : sinceTarget + 1;
-      const ltr = isTarget ? L : distractors(L, 1)[0];
+      const ltr = isTarget ? Case.glyph(L) : distractors(L, 1)[0];
       const node = makeFloater('bubble-float', ltr, pick(LETTER_COLORS), S);
       const o = { el: node, bx: rand(S * 0.6, W() - S * 0.6), x: 0, y: H() + S, vy: -(H() * 0.10 + rand(0, H() * 0.08)), phase: rand(0, 6.28), amp: rand(15, 40), ltr, popped: false };
       node.addEventListener('pointerdown', e => { e.preventDefault(); tap(o); });
@@ -134,7 +143,7 @@ const Games = (() => {
     }
     function tap(o) {
       if (!running || o.popped) return;
-      if (o.ltr === L) {
+      if (Case.same(o.ltr, L)) {
         o.popped = true; score++;
         setStars(score, GOAL);
         Sfx.pop(); Sfx.sparkle();
@@ -197,13 +206,13 @@ const Games = (() => {
   function magnetGame(ch, onDone) {
     const L = ch.letter, GOAL = 4;
     const el = area(); el.className = 'game-area hunt';
-    setPrompt(`Find all the ${L}'s`, L, ch.color); setStars(0, GOAL);
+    setPrompt(`Find all the ${Case.phrase(L)}`, L, ch.color); setStars(0, GOAL);
     const say = () => Voice.say(`Find all the ${L}'s and stick them on the fridge!`, { key: `${L}-magnet` });
     say(); $('#game-target').onclick = say;
 
     const W = el.clientWidth, H = el.clientHeight, M = H * 0.15;
     el.style.setProperty('--m', M + 'px');
-    el.innerHTML = `<div class="fridge"><div class="fridge-handle"></div><div class="slots">${Array.from({ length: GOAL }, () => `<div class="slot">${L}</div>`).join('')}</div></div>`;
+    el.innerHTML = `<div class="fridge"><div class="fridge-handle"></div><div class="slots">${Case.glyphs(L, GOAL).map(g => `<div class="slot">${g}</div>`).join('')}</div></div>`;
     const fridge = el.querySelector('.fridge'), slots = Array.from(el.querySelectorAll('.slot'));
     const ar = el.getBoundingClientRect(), fr = fridge.getBoundingClientRect();
     const tableRight = fr.left - ar.left - M * 0.4;
@@ -223,7 +232,7 @@ const Games = (() => {
     function drop(o) {
       if (!running) { slideTo(o, o.hx, o.hy); return; }
       if (!overFridge(o)) { slideTo(o, o.hx, o.hy); return; }
-      if (o.ltr === L) {
+      if (Case.same(o.ltr, L)) {
         o.stuck = true; done++;
         const slot = slots[done - 1]; slot.classList.add('filled');
         const sr = slot.getBoundingClientRect();
@@ -237,10 +246,10 @@ const Games = (() => {
         wrong++; Sfx.boing();
         replay(o.el, 'wobble');
         slideTo(o, o.hx, o.hy, 450);
-        if (wrong >= 2) items.filter(m => m.ltr === L && !m.stuck).forEach(m => m.el.classList.add('hint'));
+        if (wrong >= 2) items.filter(m => Case.same(m.ltr, L) && !m.stuck).forEach(m => m.el.classList.add('hint'));
       }
     }
-    shuffle([...Array(GOAL).fill(L), ...distractors(L, 6)]).forEach((ltr, i) => {
+    shuffle([...Case.glyphs(L, GOAL), ...distractors(L, 6)]).forEach((ltr, i) => {
       const node = document.createElement('div');
       node.className = 'magnet';
       node.style.setProperty('--c', pick(LETTER_COLORS));
@@ -265,7 +274,9 @@ const Games = (() => {
   function buildGame(ch, onDone) {
     const L = ch.letter, strokes = LETTER_STROKES[L];
     const el = area(); el.className = 'game-area build';
-    setPrompt('Build the letter', L, ch.color); setStars(0, strokes.length);
+    // Uppercase whatever the case mode says: LETTER_STROKES only has uppercase
+    // paths. Lowercase strokes are still to come.
+    setPrompt('Build the letter', L, ch.color, L); setStars(0, strokes.length);
     const say = () => Voice.say(`Let's build the letter ${L}! Put the pieces together!`, { key: `${L}-build` });
     say(); $('#game-target').onclick = say;
 
@@ -391,9 +402,12 @@ const Games = (() => {
     const CW = H * 0.2, CH = H * 0.17, EW = H * 0.28, GAP = H * 0.02, trackY = H * 0.8;
     el.style.setProperty('--cw', CW + 'px'); el.style.setProperty('--ch', CH + 'px'); el.style.setProperty('--ew', EW + 'px');
     el.style.setProperty('--track', trackY + 'px');
+    // The engine and the empty hitch both advertise the target, so they show
+    // both forms ("Aa") in mixed mode – `two` shrinks the type to fit.
+    const mark = Case.label(L), two = mark.length > 1 ? ' two' : '';
     el.innerHTML = `<div class="track"></div><div class="train-set">
-      <div class="wagon engine" style="--c:${ch.color}"><div class="chimney"></div><div class="cab"></div><div class="body">${L}</div><div class="wheel l"></div><div class="wheel r"></div></div>
-      <div class="hitch"><span>${L}</span></div></div>`;
+      <div class="wagon engine${two}" style="--c:${ch.color}"><div class="chimney"></div><div class="cab"></div><div class="body">${mark}</div><div class="wheel l"></div><div class="wheel r"></div></div>
+      <div class="hitch${two}"><span>${mark}</span></div></div>`;
     const set = el.querySelector('.train-set'), engine = { el: el.querySelector('.engine') }, hitch = { el: el.querySelector('.hitch') };
     // Engine at the front (right end); carriages couple on behind it, to the left.
     const engineX = H * 0.05 + GOAL * (CW + GAP), rowY = trackY - CH;
@@ -402,12 +416,12 @@ const Games = (() => {
     setXY(hitch, hitchX(0), rowY);
 
     let attached = 0, wrong = 0, running = true, items = [];
-    const parked = shuffle([...Array(GOAL).fill(L), ...distractors(L, 3)]);
+    const parked = shuffle([...Case.glyphs(L, GOAL), ...distractors(L, 3)]);
     const spacing = (W - parked.length * CW) / (parked.length + 1);
     function nearHitch(o) { return Math.abs(o.x - hitch.x) < CW * 0.8 && Math.abs(o.y - hitch.y) < CH * 0.9; }
     function drop(o) {
       if (!running || !nearHitch(o)) { slideTo(o, o.hx, o.hy); return; }
-      if (o.ltr === L) {
+      if (Case.same(o.ltr, L)) {
         o.attached = true; attached++;
         set.appendChild(o.el); o.el.classList.add('attached');
         slideTo(o, hitchX(attached - 1), rowY, 220);
@@ -422,7 +436,7 @@ const Games = (() => {
         wrong++; Sfx.boing();
         replay(o.el, 'wobble');
         slideTo(o, o.hx, o.hy, 450);
-        if (wrong >= 2) items.filter(w => w.ltr === L && !w.attached).forEach(w => w.el.classList.add('hint'));
+        if (wrong >= 2) items.filter(w => Case.same(w.ltr, L) && !w.attached).forEach(w => w.el.classList.add('hint'));
       }
     }
     parked.forEach((ltr, i) => {
@@ -469,7 +483,7 @@ const Games = (() => {
     say(); $('#game-target').onclick = say;
 
     const W = el.clientWidth, H = el.clientHeight;
-    const letters = shuffle([...Array(GOAL).fill(L), ...distractors(L, 3)]);
+    const letters = shuffle([...Case.glyphs(L, GOAL), ...distractors(L, 3)]);
     const cols = 3, rows = 2, B = Math.min(W / (cols + 1), H / (rows + 0.8));
     el.style.setProperty('--b', B + 'px');
     const cx = (W - cols * B) / (cols + 1), cy = (H - rows * B) / (rows + 1);
@@ -499,7 +513,7 @@ const Games = (() => {
       if (o.hits < HITS) { Sfx.crack(); o.el.classList.add('c' + o.hits); return; }
       o.smashed = true;
       Sfx.shatter(); shatter(o);
-      if (o.ltr === L) {
+      if (Case.same(o.ltr, L)) {
         done++; setStars(done, GOAL);
         Sfx.correct(); Sfx.sparkle();
         const c = centre(o.el); Fx.burst(c.x, c.y, ch.color, 16);
@@ -508,7 +522,7 @@ const Games = (() => {
       } else {
         wrong++; Sfx.boing();
         setTimeout(() => o.el.classList.add('melt'), 700);
-        if (wrong >= 2) items.filter(b => b.ltr === L && !b.smashed).forEach(b => b.el.classList.add('hint'));
+        if (wrong >= 2) items.filter(b => Case.same(b.ltr, L) && !b.smashed).forEach(b => b.el.classList.add('hint'));
       }
     }
     letters.forEach((ltr, i) => {
@@ -534,7 +548,9 @@ const Games = (() => {
     const L = ch.letter;
     let GOAL = 5;
     const el = area(); el.className = 'game-area paint';
-    setPrompt('Paint the letter', L, ch.color); setStars(0, GOAL);
+    // Uppercase whatever the case mode says: the glyph layout below is tuned to
+    // caps, and descenders (g, j, p, q, y) would fall out of the box. Still to come.
+    setPrompt('Paint the letter', L, ch.color, L); setStars(0, GOAL);
     const say = () => Voice.say(`Let's paint the letter ${L}! Tap a colour, then tap the letter!`, { key: `${L}-paint` });
     say(); $('#game-target').onclick = say;
 
@@ -610,8 +626,9 @@ const Games = (() => {
     const say = () => Voice.say(`The monster is hungry! Feed him the letter ${L}!`, { key: `${L}-monster` });
     say(); $('#game-target').onclick = say;
 
+    const mark = Case.label(L);
     el.innerHTML = `<div class="monster" style="--c:${ch.color}">
-        <div class="want"><span>${L}</span></div>
+        <div class="want${mark.length > 1 ? ' two' : ''}"><span>${mark}</span></div>
         <div class="m-body">
           <div class="horn l"></div><div class="horn r"></div>
           <div class="eye l"><div class="pupil"></div></div><div class="eye r"><div class="pupil"></div></div>
@@ -630,11 +647,11 @@ const Games = (() => {
     function spawn() {
       const isTarget = sinceTarget >= 2 || (sinceTarget >= 1 && Math.random() < 0.5);
       sinceTarget = isTarget ? 0 : sinceTarget + 1;
-      const ltr = isTarget ? L : distractors(L, 1)[0];
+      const ltr = isTarget ? Case.glyph(L) : distractors(L, 1)[0];
       const node = makeFloater('snack', ltr, pick(LETTER_COLORS), S);
       const dir = Math.random() < 0.5 ? 1 : -1;
       const o = { el: node, ltr, state: 'drift', x: dir > 0 ? -S : W() + S, by: rand(S * 0.7, H() * 0.55), y: 0, vx: dir * (W() * 0.08 + rand(0, W() * 0.06)), phase: rand(0, 6.28), amp: rand(8, 22) };
-      if (hinting && ltr === L) node.classList.add('hint');
+      if (hinting && Case.same(ltr, L)) node.classList.add('hint');
       node.addEventListener('pointerdown', e => grab(o, e));
       el.appendChild(node); items.push(o);
     }
@@ -667,7 +684,7 @@ const Games = (() => {
     function arrive(o) {
       monster.classList.remove('open');
       Sfx.chomp();
-      if (o.ltr === L) {
+      if (Case.same(o.ltr, L)) {
         o.state = 'gone'; o.el.remove();
         score++; setStars(score, GOAL);
         Sfx.correct(); Sfx.sparkle();
@@ -686,7 +703,7 @@ const Games = (() => {
           Sfx.spit(); monster.classList.add('open'); setTimeout(() => monster.classList.remove('open'), 350);
           Voice.say('Yuck! Not that one!', { key: 'monster-yuck' });
           wrong++;
-          if (wrong >= 2 && !hinting) { hinting = true; items.filter(b => b.ltr === L && b.state === 'drift').forEach(b => b.el.classList.add('hint')); }
+          if (wrong >= 2 && !hinting) { hinting = true; items.filter(b => Case.same(b.ltr, L) && b.state === 'drift').forEach(b => b.el.classList.add('hint')); }
         }, 450);
       }
     }
