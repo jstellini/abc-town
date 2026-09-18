@@ -60,7 +60,7 @@ img { -webkit-user-drag: none; user-select: none; }
 #screen-intro:not(.active) .intro-char img,
 #screen-intro:not(.active) .intro-char .q,
 #screen-reveal:not(.active)::before,
-#screen-reveal:not(.active) .reveal-char img {
+#screen-reveal:not(.active) .reveal-char {
   animation-play-state: paused !important;
 }
 
@@ -206,7 +206,7 @@ img { -webkit-user-drag: none; user-select: none; }
 .intro-char .q { display: none; position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 18vh; font-weight: 700; color: #fff; text-shadow: 0 .6vh 0 rgba(0,0,0,.25); animation: bob 2s ease-in-out infinite; }
 .intro-char.locked img { filter: brightness(0) opacity(.28); }
 .intro-char.locked .q { display: block; }
-.intro-char.wobble img, .reveal-char.wobble img { animation: wobble .6s; }
+.intro-char.wobble img, .reveal-char.wobble .shape { animation: wobble .6s; }
 #btn-play { grid-column: 1 / -1; }
 
 /* ---------- games ---------- */
@@ -512,8 +512,44 @@ img { -webkit-user-drag: none; user-select: none; }
 /* Mixed mode shows big and little together, sharing a baseline. */
 .reveal-letter.two { display: flex; align-items: baseline; gap: .04em; font-size: 26vh; }
 .reveal-letter.two .low { font-size: .62em; }
-.reveal-char { height: 44vh; }
-.reveal-char img { height: 100%; filter: drop-shadow(0 10px 8px rgba(0,0,0,.22)); animation: reveal-in .9s cubic-bezier(.34,1.56,.64,1) backwards, bob 2s ease-in-out .9s infinite; }
+/* The character is two copies of the same art: a flat silhouette, and the colour
+   one on top clipped to a circle that each tap widens. The holder does the
+   bobbing and .shape the tap jumps – put an animation on the images themselves
+   and the two layers drift apart. */
+.reveal-char {
+  position: relative; height: 44vh; transition: height .5s cubic-bezier(.34,1.56,.64,1);
+  animation: reveal-in .9s cubic-bezier(.34,1.56,.64,1) backwards, bob 2s ease-in-out .9s infinite;
+}
+.reveal-char .shape { height: 100%; position: relative; }
+.reveal-char img { height: 100%; display: block; }
+.reveal-char .lit {
+  position: absolute; left: 0; top: 0;
+  /* Centred on the face rather than the middle of the art: the first tap should
+     open a window onto the eyes, which is what makes a friend recognisable. */
+  clip-path: circle(var(--r, 150%) at 50% 42%);
+  transition: clip-path .5s cubic-bezier(.34,1.56,.64,1);
+  filter: drop-shadow(0 10px 8px rgba(0,0,0,.22));
+}
+.reveal-char .shape.poke { animation: jump .5s cubic-bezier(.34,1.56,.64,1); }
+.reveal-q {
+  display: none; position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%);
+  font-size: 20vh; font-weight: 700; color: #fff; text-shadow: 0 .8vh 0 rgba(0,0,0,.25);
+  pointer-events: none; transition: opacity .4s;
+}
+.reveal-ask { display: none; font-size: 5.5vh; font-weight: 700; color: #fff; text-shadow: 0 .6vh 0 rgba(0,0,0,.2); }
+/* Before the reveal the silhouette is the whole screen: everything that would
+   answer the question – letter, name, badge, buttons – waits its turn. */
+.reveal-inner.mystery .reveal-letter,
+.reveal-inner.mystery .reveal-name,
+.reveal-inner.mystery .reveal-badge,
+.reveal-inner.mystery .reveal-btns { display: none; }
+.reveal-inner.mystery .reveal-char { height: 58vh; }
+/* Nearly solid, unlike the intro's faint ghost: on the bright sunburst a pale
+   silhouette washes out and the rays show straight through it. */
+.reveal-inner.mystery .reveal-char .dark { filter: brightness(0) opacity(.82); }
+.reveal-inner.mystery .reveal-q,
+.reveal-inner.mystery .reveal-ask { display: block; }
+.reveal-inner.mystery .reveal-ask { animation: bob 2.4s ease-in-out infinite; }
 .reveal-name { font-size: 9vh; font-weight: 700; color: #fff; text-shadow: 0 .6vh 0 rgba(0,0,0,.2); line-height: 1.1; }
 .reveal-btns { display: flex; gap: 3vw; margin-top: 2vh; }
 

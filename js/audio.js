@@ -57,6 +57,13 @@ const Sfx = (() => {
     bubble()  { tone({ freq: 300, slide: 700, dur: 0.15, type: 'sine', vol: 0.08 }); },
     correct() { [523, 659, 784, 1047].forEach((f, i) => tone({ freq: f, dur: 0.22, type: 'triangle', vol: 0.22, at: i * 0.08 })); },
     sparkle() { [1568, 2093, 2637, 3136].forEach((f, i) => tone({ freq: f, dur: 0.12, type: 'sine', vol: 0.10, at: i * 0.05 })); },
+    // One rung of a rising sparkle per tap, so poking the silhouette on the
+    // reveal screen sounds like it is getting somewhere.
+    rise(step = 0) {
+      const base = [392, 523, 659][Math.min(step, 2)];
+      tone({ freq: base, slide: base * 1.5, dur: 0.2, type: 'triangle', vol: 0.18 });
+      [2, 2.5, 3].forEach((m, i) => tone({ freq: base * m, dur: 0.1, type: 'sine', vol: 0.07, at: 0.05 + i * 0.05 }));
+    },
     wrong()   { tone({ freq: 220, slide: 150, dur: 0.25, type: 'triangle', vol: 0.18 }); },
     whoosh()  { noise({ dur: 0.35, vol: 0.18, freq: 600, q: 0.5 }); },
     boing()   { tone({ freq: 160, slide: 480, dur: 0.3, type: 'sawtooth', vol: 0.10 }); },

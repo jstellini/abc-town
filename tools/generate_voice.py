@@ -76,6 +76,8 @@ def build_lines(chars):
         ("words-try", "Not quite. Try again!"),
         ("words-done", "Brilliant! You did it!"),
         ("words-locked", "Collect all the letters first, then Word Town will open!"),
+        ("reveal-who", "Who's inside? Tap to see!"),
+        ("reveal-nudge", "Tap the shadow to see who it is!"),
     ]
     lines += [(f"word-{w}", f"{w.capitalize()}!") for w in load_words()]
     for c in chars:
