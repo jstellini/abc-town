@@ -512,27 +512,34 @@ img { -webkit-user-drag: none; user-select: none; }
 /* Mixed mode shows big and little together, sharing a baseline. */
 .reveal-letter.two { display: flex; align-items: baseline; gap: .04em; font-size: 26vh; }
 .reveal-letter.two .low { font-size: .62em; }
-/* The character is two copies of the same art: a flat silhouette, and the colour
-   one on top clipped to a circle that each tap widens. The holder does the
-   bobbing and .shape the tap jumps – put an animation on the images themselves
-   and the two layers drift apart. */
+/* The character is two copies of the same art: the colour one, and a flat
+   silhouette on top clipped to a circle that each tap shrinks. The shadow closes
+   in on the face, so the face – which is what makes a friend recognisable – is
+   the last thing to appear. The holder does the bobbing and .shape the tap jumps
+   – put an animation on the images themselves and the two layers drift apart. */
 .reveal-char {
   position: relative; height: 44vh; transition: height .5s cubic-bezier(.34,1.56,.64,1);
   animation: reveal-in .9s cubic-bezier(.34,1.56,.64,1) backwards, bob 2s ease-in-out .9s infinite;
 }
 .reveal-char .shape { height: 100%; position: relative; }
 .reveal-char img { height: 100%; display: block; }
-.reveal-char .lit {
+.reveal-char .lit { filter: drop-shadow(0 10px 8px rgba(0,0,0,.22)); }
+.reveal-char .dark {
   position: absolute; left: 0; top: 0;
-  /* Centred on the face rather than the middle of the art: the first tap should
-     open a window onto the eyes, which is what makes a friend recognisable. */
-  clip-path: circle(var(--r, 150%) at 50% 42%);
+  /* Centred on the face (--fx/--fy, read off the art in js/app.js), not the middle
+     of the box, so the shadow's last stand is over the eyes whatever shape the
+     friend is. The filter stays on whatever the screen's state: the clip is what
+     decides how much of the shadow is visible, and keeping it here lets the final
+     patch shrink away instead of blinking out. */
+  /* Fully opaque, not the intro's faint ghost: this shadow sits on top of the
+     colour art, so anything less shows the face straight through it. */
+  filter: brightness(0);
+  clip-path: circle(var(--r, 0%) at var(--fx, 50%) var(--fy, 42%));
   transition: clip-path .5s cubic-bezier(.34,1.56,.64,1);
-  filter: drop-shadow(0 10px 8px rgba(0,0,0,.22));
 }
 .reveal-char .shape.poke { animation: jump .5s cubic-bezier(.34,1.56,.64,1); }
 .reveal-q {
-  display: none; position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%);
+  display: none; position: absolute; left: var(--fx, 50%); top: var(--fy, 42%); transform: translate(-50%, -50%);
   font-size: 20vh; font-weight: 700; color: #fff; text-shadow: 0 .8vh 0 rgba(0,0,0,.25);
   pointer-events: none; transition: opacity .4s;
 }
@@ -544,9 +551,6 @@ img { -webkit-user-drag: none; user-select: none; }
 .reveal-inner.mystery .reveal-badge,
 .reveal-inner.mystery .reveal-btns { display: none; }
 .reveal-inner.mystery .reveal-char { height: 58vh; }
-/* Nearly solid, unlike the intro's faint ghost: on the bright sunburst a pale
-   silhouette washes out and the rays show straight through it. */
-.reveal-inner.mystery .reveal-char .dark { filter: brightness(0) opacity(.82); }
 .reveal-inner.mystery .reveal-q,
 .reveal-inner.mystery .reveal-ask { display: block; }
 .reveal-inner.mystery .reveal-ask { animation: bob 2.4s ease-in-out infinite; }
