@@ -132,11 +132,13 @@ const App = (() => {
   // The payoff for the whole letter: the friend turns up as the same silhouette
   // the intro teased, and taps rub the colour back into it. The character is
   // already earned by finishing the games – tapping only decides when to look.
-  const REVEAL_TAPS = 3;
+  const REVEAL_TAPS = 6;
   // How wide the colour circle is after each tap; the last one opens it fully.
   // A circle percentage resolves against the diagonal of the art, so these are
-  // smaller than they look: 17% is about a face, 33% about a body.
-  const REVEAL_RADII = ['0%', '17%', '33%'];
+  // smaller than they look: 15% is about a face, 43% everything but the feet and
+  // whatever is above the head. They start close together and open up, so the
+  // early taps are a slow peek and the late ones feel like it is giving way.
+  const REVEAL_RADII = ['0%', '15%', '21%', '27%', '34%', '43%'];
   let revealTaps = 0, revealShown = true, revealTimers = [];
   const revealLater = (fn, ms) => revealTimers.push(setTimeout(fn, ms));
   function clearReveal() { revealTimers.forEach(clearTimeout); revealTimers = []; }

@@ -60,7 +60,8 @@ const Sfx = (() => {
     // One rung of a rising sparkle per tap, so poking the silhouette on the
     // reveal screen sounds like it is getting somewhere.
     rise(step = 0) {
-      const base = [392, 523, 659][Math.min(step, 2)];
+      const RUNGS = [392, 440, 494, 523, 587, 659];
+      const base = RUNGS[Math.min(step, RUNGS.length - 1)];
       tone({ freq: base, slide: base * 1.5, dur: 0.2, type: 'triangle', vol: 0.18 });
       [2, 2.5, 3].forEach((m, i) => tone({ freq: base * m, dur: 0.1, type: 'sine', vol: 0.07, at: 0.05 + i * 0.05 }));
     },
