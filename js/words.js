@@ -154,8 +154,13 @@ const Words = (() => {
   }
 
   // ---------- Game 2: Build the word ----------
-  // A spoken three-letter word, three slots ghosting it, and a tray of letter
+  // A picture and its word: three slots ghosting the word, and a tray of letter
   // tiles. Tap a tile and it flies into the next empty slot.
+  //
+  // The picture is the point of the round – it says which word this is without
+  // the child having to read the ghosts or hold the spoken word in their head,
+  // and it is still there to look at halfway through. So the words come from the
+  // three-letter PICTURE_WORDS rather than all of TRAIN_WORDS.
   //
   // Every clip this game speaks already exists: {L}-tick for each letter as it
   // lands and word-<word> for the finished word, the same pair the town train
@@ -163,7 +168,7 @@ const Words = (() => {
   function buildWordGame(onDone) {
     const ROUNDS = 3;
     const el = $('#word-area');
-    const words = shuffle(TRAIN_WORDS.slice()).slice(0, ROUNDS);
+    const words = shuffle(PICTURE_WORDS.filter(p => p.word.length === 3)).slice(0, ROUNDS);
     let round = 0, running = true, timers = [];
     // Voice.say shares one Audio element and pauses whatever is playing, so
     // every delayed line goes through here and is cancelled together.
@@ -171,7 +176,7 @@ const Words = (() => {
     const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
 
     function ask() {
-      const word = words[round];
+      const { word, pic } = words[round];
       const letters = [...word.toUpperCase()];
       // Words are written lowercase, so a mixed-mode ghost never reads "cAt" –
       // the mixing happens in the tray, and Case.same decides what fits.
@@ -199,10 +204,13 @@ const Words = (() => {
       say();
 
       el.className = 'word-area build';
-      el.innerHTML = `<div class="word-slots">${ghosts.map((g, i) => `<div class="wslot${i === 0 ? ' next' : ''}"><span class="wghost">${g}</span></div>`).join('')}</div>
+      el.innerHTML = `<div class="word-pic">${pic}</div>
+        <div class="word-slots">${ghosts.map((g, i) => `<div class="wslot${i === 0 ? ' next' : ''}"><span class="wghost">${g}</span></div>`).join('')}</div>
         <div class="word-tray"></div>`;
       const slots = Array.from(el.querySelectorAll('.wslot'));
       const trayEl = el.querySelector('.word-tray');
+      // Tapping the picture is how a child asks "what is it again?".
+      el.querySelector('.word-pic').addEventListener('pointerdown', e => { e.preventDefault(); Sfx.tap(); Voice.say(`${word}!`, { key: `word-${word}` }); });
 
       tray.forEach((tile, i) => {
         const b = document.createElement('button');

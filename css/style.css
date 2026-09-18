@@ -599,8 +599,11 @@ img { -webkit-user-drag: none; user-select: none; }
 .word-card.right { transform: scale(1.12); }
 .word-card.dim { opacity: .25; transform: scale(.9); }
 
-/* Build the word: a row of ghosted slots above a tray of letter tiles. */
-.word-area.build { flex-direction: column; gap: 5vh; }
+/* Build the word: the picture, a row of ghosted slots, a tray of letter tiles. */
+.word-area.build { flex-direction: column; gap: 3.5vh; }
+.word-pic { font-size: 17vh; line-height: 1; cursor: pointer; filter: drop-shadow(0 1vh 1vh rgba(0,0,0,.18)); transition: transform .2s; }
+.word-pic:active { transform: scale(.95); }
+.word-area.build.done .word-pic { animation: built-bounce .9s cubic-bezier(.34,1.56,.64,1); }
 .word-slots { display: flex; gap: 2.5vw; }
 .wslot {
   width: 17vh; height: 20vh; border-radius: 3vh; background: rgba(255,255,255,.45);

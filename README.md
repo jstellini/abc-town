@@ -131,11 +131,13 @@ opens it for testing.
 - **Who starts with…?** – a lineup of three or four friends and a target letter. Tap the one
   whose *name* starts with it. Four rounds, then confetti and back to the hub. A wrong tap
   wobbles; after two misses the right one glows.
-- **Build the word** – a three-letter word is spoken and shown as faint ghost letters in three
-  slots, with a tray of five tiles (the word's letters plus two others). Tap a tile and it flies
-  into the next slot, saying its letter; the finished word is read out. Three words, then back to
-  the hub. Tapping a letter that *is* in the word but isn't next just nudges the cursor rather
-  than counting as a miss — only a letter that isn't in the word at all does that.
+- **Build the word** – a picture, and its word as faint ghost letters in three slots, with a tray
+  of five tiles (the word's letters plus two others). Tap a tile and it flies into the next slot,
+  saying its letter; the finished word is read out. Three words, then back to the hub. The picture
+  is what tells the child which word this is — no reading the ghosts, no holding the spoken word
+  in their head — and it stays there to look at halfway through; tap it to hear the word again.
+  Tapping a letter that *is* in the word but isn't next just nudges the cursor rather than
+  counting as a miss — only a letter that isn't in the word at all does that.
 - **Make a word** – a word family: `_at` in the middle, a rack of front letters under it, and a
   shelf of three empty frames above. Tap a letter and it snaps on, the picture lands on the shelf
   and the voice says the new word — *cat*, *hat*, *bat*. Two families, then back to the hub.
@@ -149,9 +151,10 @@ opens it for testing.
   it goes. A wrong basket wobbles, and after two misses the right one glows. The two letters never
   sound alike (*cat* and *key* start with the same sound) and never share a colour.
 
-Build-the-word's words come from `TRAIN_WORDS` in `js/data.js` (the same 50 the town train
-spells); Make-a-word's families from `WORD_FAMILIES`; and the pictures for those and for
-Which-basket from `PICTURE_WORDS`, each word with the emoji that shows it. They speak the pair
+Build-the-word's words are the three-letter ones in `PICTURE_WORDS` in `js/data.js`, each with
+the emoji that shows it — a word without a picture has nothing to put above the slots.
+Make-a-word's families come from `WORD_FAMILIES`, and its shelf and Which-basket's pictures from
+`PICTURE_WORDS` again. They speak the pair
 `Town.startTrain` does — `{L}-tick` per letter, then `word-<word>` for the whole word — so the
 only clips the games themselves needed were their prompts.
 
