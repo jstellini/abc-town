@@ -39,6 +39,30 @@ img { -webkit-user-drag: none; user-select: none; }
   transition: opacity .35s ease, transform .35s ease, visibility 0s linear .35s;
 }
 .screen.active { opacity: 1; pointer-events: auto; transform: none; visibility: visible; transition-delay: 0s; }
+/* visibility:hidden does NOT stop CSS animations, so an off-screen screen keeps
+   burning frames – the home grid's 26 bobbing tiles and 26 twinkling stars, each
+   with a drop-shadow that re-blurs every frame, were still running during every
+   minigame. Pausing costs nothing visually (they resume on return) and does not
+   touch the fade above, which is a *transition*, not an animation.
+   The town is not listed: it is already stopped by its own `.parked`, and it has
+   animationend handlers that remove transient nodes, which a paused animation
+   would never fire.
+   Named element by element on purpose. A blanket `:not(.active) *` also works,
+   but that universal descendant selector has to be re-evaluated against every
+   node on each screen change, and it made switching screens measurably slower
+   than the animations it was saving. These are every always-on animation that
+   lives on a screen the child isn't looking at. */
+#screen-start:not(.active) .logo span,
+#screen-start:not(.active) .start-parade img,
+#screen-start:not(.active) #btn-start,
+#screen-home:not(.active) .tile-char-w,
+#screen-home:not(.active) .tile-star-w,
+#screen-intro:not(.active) .intro-char img,
+#screen-intro:not(.active) .intro-char .q,
+#screen-reveal:not(.active)::before,
+#screen-reveal:not(.active) .reveal-char {
+  animation-play-state: paused !important;
+}
 
 /* ---------- shared UI ---------- */
 .bar {
@@ -147,8 +171,16 @@ img { -webkit-user-drag: none; user-select: none; }
 .tile.done .tile-letter { inset: 6% auto auto 8%; }
 .tile.done .tile-letter .up { font-size: 6vmin; }
 .tile.done .tile-letter .low { font-size: 4vmin; }
-.tile-char { position: absolute; right: 4%; bottom: 3%; height: 66%; max-width: 70%; object-fit: contain; filter: drop-shadow(0 4px 3px rgba(0,0,0,.25)); animation: bob 2.2s ease-in-out infinite; }
-.tile-star { position: absolute; top: 5%; right: 7%; font-size: 3.6vmin; filter: drop-shadow(0 2px 2px rgba(0,0,0,.3)); animation: twinkle 1.8s ease-in-out infinite; }
+/* The wrapper animates, the inner element carries the filter. Same result on
+   screen, but the filtered layer rasterises once instead of every frame – with
+   26 tiles that is 52 offscreen blurs per frame saved on the home screen. */
+.tile-char-w { position: absolute; right: 4%; bottom: 3%; height: 66%; max-width: 70%; animation: bob 2.2s ease-in-out infinite; }
+.tile-char { display: block; width: 100%; height: 100%; object-fit: contain; object-position: right bottom; filter: drop-shadow(0 4px 3px rgba(0,0,0,.25)); }
+/* The wrapper takes the old .tile-star box exactly – no display or line-height
+   changes on the inner span, or the glyph shifts and twinkle's rotation centre
+   moves with it. */
+.tile-star-w { position: absolute; top: 5%; right: 7%; animation: twinkle 1.8s ease-in-out infinite; }
+.tile-star { font-size: 3.6vmin; filter: drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
 
 /* ---------- intro ---------- */
 #screen-intro {
@@ -719,7 +751,12 @@ img { -webkit-user-drag: none; user-select: none; }
 .townie.dragging .townie-body { transform: translate(-50%, -100%) scale(1.15) rotate(-5deg); }
 .townie.arrive .townie-body { animation: arrive .6s cubic-bezier(.34,1.56,.64,1); }
 .townie .flip { display: block; }
-.townie .char { display: block; height: 19vh; width: 15.84vh; transform-origin: 50% 100%; filter: drop-shadow(0 .8vh .6vh rgba(0,0,0,.2)); animation: breathe 2.6s ease-in-out infinite; pointer-events: none; }
+/* No drop-shadow here: every character SVG already draws its own ground shadow
+   (`shadow()` in tools/build_characters.py), and a filter on an element that
+   animates forever makes the GPU re-rasterise and re-blur it every frame – once
+   per character, up to 26 at a time. That was the town's biggest cost.
+   `.dragging` keeps its shadow: one element at a time, and the lift needs it. */
+.townie .char { display: block; height: 19vh; width: 15.84vh; transform-origin: 50% 100%; animation: breathe 2.6s ease-in-out infinite; pointer-events: none; }
 .townie.dragging .char { filter: drop-shadow(0 3vh 1.5vh rgba(0,0,0,.25)); }
 .townie .char.walking   { animation: waddle .5s ease-in-out infinite; }
 .townie .char.laugh     { animation: laugh .6s ease-in-out 2; }

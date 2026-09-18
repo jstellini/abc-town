@@ -159,6 +159,33 @@ sound. Three characters make a sound-framed question wrong: Xylophone starts wit
 sound, and the lineup keeps same-sounding letters apart (C/K) and never pairs X with Z — the
 question is about spelling, but a child reasoning by ear shouldn't be punished for it.
 
+## Keeping it quick on an old iPad
+
+The game targets a 2017 iPad (A9, 2 GB, 2048×1536). A few rules follow from that —
+worth knowing before adding anything decorative:
+
+- **Never animate an element that also has a `filter`.** `drop-shadow` on a moving element
+  makes the GPU re-blur it every frame. Put the filter on an inner element and the animation
+  on a wrapper (`.tile-char-w` / `.tile-char` in `css/style.css` is the pattern).
+- **Hidden screens keep animating.** `.screen` hides with `visibility: hidden`, which does
+  *not* stop CSS animations, so anything always-on needs adding to the
+  `animation-play-state: paused` list under `.screen.active`. List elements individually —
+  a blanket `:not(.active) *` is slower to match than the animations it saves.
+- **The town's scenery is static markup**, so `#town-view` ships with `parked` in
+  `index.html` (`display: none`) and only `Town.enter()` unparks it. Without that its ~40
+  infinite animations run from page load on every screen.
+- **Navigation listens on `pointerdown`, not `click`** (`tap()` in `js/app.js`). On iOS a
+  click lands well after touchend, and the double-tap-zoom guard in `index.html` swallows the
+  synthetic click of a quick second tap. The grown-ups panel stays on `click`.
+- **Read before you write in a frame loop.** `Town.frame()` takes every
+  `getBoundingClientRect()` up front; a read after a style write forces a synchronous layout
+  of the whole town.
+- Characters already draw their own ground shadow (`shadow()` in `tools/build_characters.py`),
+  so they need no CSS shadow.
+
+`document.getAnimations().filter(a => a.playState === 'running').length` per screen is the
+quickest health check — during a minigame it should be a handful, not a hundred.
+
 ## Tuning
 
 - **Phonics sounds** – `js/data.js`, the `sound` column. The text-to-speech engine says

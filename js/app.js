@@ -8,6 +8,20 @@ const App = (() => {
   let progress = load();
   let current = null;
 
+  // Navigation fires on pointerdown, not click. On iOS a click lands well after
+  // touchend, and index.html's double-tap-zoom guard swallows the synthetic click
+  // of a quick second tap entirely – so the letter tiles felt laggy and sometimes
+  // dropped a tap, while the minigames (already pointerdown) felt fine.
+  // No preventDefault: WebKit would suppress :active, which is the press feedback.
+  // No isPrimary check: on a touchscreen every finger that isn't the first one
+  // currently down reports isPrimary false, so a hand resting on the glass would
+  // silently eat every tap. Double-firing is already ruled out by not listening
+  // for click at all.
+  const tap = (el, fn) => el && el.addEventListener('pointerdown', e => {
+    if (e.button) return;
+    fn(e);
+  });
+
   function load() {
     try { const p = JSON.parse(localStorage.getItem(KEY)); if (p && p.unlocked) return p; } catch (e) { /* fresh start */ }
     return { unlocked: {} };
@@ -50,10 +64,13 @@ const App = (() => {
       t.className = 'tile' + (isUnlocked(c.letter) ? ' done' : '');
       t.style.setProperty('--c', c.color);
       t.innerHTML = `<span class="tile-pop"><span class="tile-letter"><span class="up">${c.letter}</span><span class="low">${c.letter.toLowerCase()}</span></span>`
-        + (isUnlocked(c.letter) ? `<img class="tile-char" src="${c.img}" alt="${c.name}" draggable="false"><span class="tile-star">⭐</span>` : '') + `</span>`;
+        // The -w wrappers carry the animation so the filtered element inside can
+        // rasterise once and only a transform animates. Filter and animation on
+        // the same element means a fresh offscreen blur every frame, 52 of them.
+        + (isUnlocked(c.letter) ? `<span class="tile-char-w"><img class="tile-char" src="${c.img}" alt="${c.name}" draggable="false"></span><span class="tile-star-w"><span class="tile-star">⭐</span></span>` : '') + `</span>`;
       if (i === 21) t.style.gridColumnStart = 2; // centre the last row (V–Z)
       t.style.animationDelay = (i * 25) + 'ms';
-      t.addEventListener('click', () => { Sfx.tap(); openLetter(c); });
+      tap(t, () => { Sfx.tap(); openLetter(c); });
       grid.appendChild(t);
     });
   }
@@ -258,26 +275,28 @@ const App = (() => {
     Fx.init();
     applyCase();
     checkA2HS();
-    $('#btn-start').addEventListener('click', () => {
+    tap($('#btn-start'), () => {
       Sfx.unlock(); Voice.init();
       Sfx.correct();
       show('home');
       setTimeout(() => Voice.say('Welcome to A B C Town! Pick a letter!', { key: 'welcome' }), 300);
     });
-    $$('[data-go]').forEach(b => b.addEventListener('click', () => { Sfx.tap(); show(b.dataset.go); }));
-    $('#btn-town').addEventListener('click', () => { Sfx.tap(); show('town'); });
+    $$('[data-go]').forEach(b => tap(b, () => { Sfx.tap(); show(b.dataset.go); }));
+    tap($('#btn-town'), () => { Sfx.tap(); show('town'); });
     // Left enabled while locked: saying what's still needed beats a dead button.
-    $('#btn-words').addEventListener('click', () => {
+    tap($('#btn-words'), () => {
       if (!ALL_COLLECTED()) { Sfx.boing(); Voice.say('Collect all the letters first, then Word Town will open!', { key: 'words-locked' }); return; }
       Sfx.tap(); show('words');
     });
-    $('#btn-play').addEventListener('click', () => { Sfx.tap(); startGames(); });
-    $('#intro-card').addEventListener('click', () => { Sfx.tap(); Voice.say(introPhrase(current), { key: `${current.letter}-intro` }); });
-    $('#intro-char').addEventListener('click', () => { Sfx.boing(); $('#intro-char').classList.remove('wobble'); void $('#intro-char').offsetWidth; $('#intro-char').classList.add('wobble'); });
-    $('#btn-reveal-town').addEventListener('click', () => { Sfx.tap(); show('town', { focus: current.letter }); });
-    $('#btn-reveal-home').addEventListener('click', () => { Sfx.tap(); show('home'); });
-    $('#reveal-inner').addEventListener('pointerdown', tapReveal);
-    $('#reveal-char').addEventListener('click', () => {
+    tap($('#btn-play'), () => { Sfx.tap(); startGames(); });
+    tap($('#intro-card'), () => { Sfx.tap(); Voice.say(introPhrase(current), { key: `${current.letter}-intro` }); });
+    tap($('#intro-char'), () => { Sfx.boing(); replayOn($('#intro-char'), 'wobble'); });
+    tap($('#btn-reveal-town'), () => { Sfx.tap(); show('town', { focus: current.letter }); });
+    tap($('#btn-reveal-home'), () => { Sfx.tap(); show('home'); });
+    tap($('#reveal-inner'), tapReveal);
+    // Inside #reveal-inner, so this fires first and then tapReveal: exactly one
+    // of the two does anything, depending on whether the friend is out yet.
+    tap($('#reveal-char'), () => {
       if (!revealShown) return; // still a shadow – tapReveal has it
       Sfx.giggle();
       Voice.say(`${current.name}!`, { key: `${current.letter}-reveal-tap` });
