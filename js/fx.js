@@ -1,18 +1,22 @@
 // Particle effects on a full-screen canvas: sparkle bursts and confetti.
 
 const Fx = (() => {
-  let canvas, ctx, parts = [], raf = 0;
+  let canvas, ctx, parts = [], raf = 0, sizeDirty = true;
 
   function init() {
     canvas = document.getElementById('fx');
     ctx = canvas.getContext('2d');
     resize();
-    window.addEventListener('resize', resize);
-    window.addEventListener('orientationchange', () => setTimeout(resize, 300));
-    if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
+    const later = () => { sizeDirty = true; };
+    window.addEventListener('resize', later);
+    window.addEventListener('orientationchange', () => setTimeout(later, 300));
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', later);
   }
   // Size the bitmap from the canvas's own box (innerWidth/Height lag behind on iOS rotations).
+  // Reading clientWidth forces a layout, so only do it when something actually
+  // resized – it used to run every frame for as long as a particle was alive.
   function resize() {
+    sizeDirty = false;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
     if (w === canvas.width && h === canvas.height) return;
@@ -23,7 +27,7 @@ const Fx = (() => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
   function loop() {
-    resize();
+    if (sizeDirty) resize();
     clearAll();
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);

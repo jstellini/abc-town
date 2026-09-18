@@ -78,6 +78,25 @@ const Town = (() => {
   let sceneryReady = false, night = false, yawnTimer = 3;
   function replay(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
   function centreOf(el) { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }
+  // Repeating scenery effects register here so leaving the town stops them at
+  // once, rather than letting them tick against a parked screen until their own
+  // fallback timeout fires.
+  const intervals = new Set();
+  function every(fn, ms) { const id = setInterval(fn, ms); intervals.add(id); return id; }
+  function stopEvery(id) { clearInterval(id); intervals.delete(id); }
+  // #town-view is a static full-screen box, so measure it once per visit rather
+  // than every frame of a drag. Invalidated on resize/rotate.
+  let viewR = null;
+  // A zero width means it was measured while the view was display:none – never
+  // cache that, the drag edge maths below divides by it.
+  function viewRect() {
+    if (!viewR || !viewR.width) viewR = view.getBoundingClientRect();
+    return viewR;
+  }
+  window.addEventListener('resize', () => { viewR = null; });
+  window.addEventListener('orientationchange', () => setTimeout(() => { viewR = null; }, 300));
+  // iOS resizes the visual viewport (URL bar, split view) without a window resize.
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', () => { viewR = null; });
   // An element's box in stage coordinates (what character positions use).
   function stageRect(el) {
     const r = el.getBoundingClientRect(), sr = stage.getBoundingClientRect();
@@ -509,11 +528,11 @@ const Town = (() => {
       el.classList.add('driving');
       setTimeout(() => { if (running) Sfx.chug(); }, 300);
       const pipe = el.querySelector('.pipe');
-      const puffs = setInterval(() => { if (!running) return; const c = centreOf(pipe); Fx.burst(c.x, c.y - 14, '#cfd8dc', 4); }, 260);
+      const puffs = every(() => { if (!running) return; const c = centreOf(pipe); Fx.burst(c.x, c.y - 14, '#cfd8dc', 4); }, 260);
       [2500, 2900, 3300].forEach(ms => setTimeout(() => { if (running) Sfx.beep(); }, ms));
       const r = stageRect(el);
       setTimeout(() => everyoneLaughs(r.cx, r.bottom, viewW() * 0.3), 900);
-      const done = () => { el.classList.remove('driving'); clearInterval(puffs); };
+      const done = () => { el.classList.remove('driving'); stopEvery(puffs); };
       el.addEventListener('animationend', ev => { if (ev.target === el) done(); }, { once: true });
       setTimeout(done, 4600);
     });
@@ -563,7 +582,7 @@ const Town = (() => {
         townies.forEach(t => { if (free(t) && Math.abs(t.x - r.cx) < viewW() * 0.6) showBubble(t, word + '!', 1600); });
       }, 1000 + 3 * 700 + 200);
       const chimney = train.querySelector('.chimney');
-      const puffs = setInterval(() => {
+      const puffs = every(() => {
         if (!running) return;
         const r = stageRect(chimney);
         const p = document.createElement('div');
@@ -656,7 +675,7 @@ const Town = (() => {
         Sfx.blast();
         const c = centreOf(rocket), r = stageRect(el);
         let n = 0;
-        const smoke = setInterval(() => { Fx.burst(c.x + (Math.random() - 0.5) * 30, c.y + 30, n % 2 ? '#e0e0e0' : '#ffffff', 6); if (++n > 12) clearInterval(smoke); }, 90);
+        const smoke = every(() => { Fx.burst(c.x + (Math.random() - 0.5) * 30, c.y + 30, n % 2 ? '#e0e0e0' : '#ffffff', 6); if (++n > 12) stopEvery(smoke); }, 90);
         setTimeout(() => { if (running) blowAway(r.cx, r.bottom, viewW() * 0.22, viewW() * 0.14); }, 500);
         setTimeout(() => townies.forEach(t => { if (free(t) && Math.hypot(t.x - r.cx, t.y - r.bottom) < viewW() * 0.5) { showBubble(t, '🚀', 1500); } }), 900);
       }, liftoff);
@@ -712,6 +731,7 @@ const Town = (() => {
   function enter(opts = {}) {
     view = $('#town-view'); stage = $('#town-stage'); layer = $('#townies'); trainEl = $('#train');
     clearTimeout(parkTimer); view.classList.remove('parked');
+    viewR = null;   // the view was display:none until the line above
     focusLetter = opts.focus || null;
     setupScenery();
     layer.innerHTML = ''; townies = []; dragging = null;
@@ -731,6 +751,8 @@ const Town = (() => {
   let parkTimer = 0;
   function leave() {
     running = false; cancelAnimationFrame(raf); convoId++;
+    intervals.forEach(clearInterval); intervals.clear();
+    viewR = null;
     if (!view) return;
     clearTimeout(parkTimer);
     parkTimer = setTimeout(() => { if (!running) { layer.innerHTML = ''; townies = []; view.classList.add('parked'); } }, 450);
@@ -795,10 +817,15 @@ const Town = (() => {
     const p = (y - H * GROUND_TOP) / (H * (GROUND_BOT - GROUND_TOP));
     return 0.72 + 0.45 * Math.max(0, Math.min(1, p));
   }
+  // Skip writes that wouldn't change anything. zIndex and the flip only move when
+  // a character crosses a pixel row or turns around, so at 26 characters this cuts
+  // roughly 78 style writes a frame down to the handful that actually moved.
   function render(t) {
-    t.el.style.transform = `translate3d(${t.x}px,${t.y}px,0) scale(${scaleFor(t.scaleY || t.y)})`;
-    t.el.style.zIndex = t.state === 'drag' ? 1000 : (t.zBoost || Math.round(t.y));
-    t.flip.style.transform = `scaleX(${t.dir})`;
+    const tr = `translate3d(${t.x}px,${t.y}px,0) scale(${scaleFor(t.scaleY || t.y)})`;
+    if (tr !== t._tr) { t.el.style.transform = tr; t._tr = tr; }
+    const z = t.state === 'drag' ? 1000 : (t.zBoost || Math.round(t.y));
+    if (z !== t._z) { t.el.style.zIndex = z; t._z = z; }
+    if (t.dir !== t._dir) { t.flip.style.transform = `scaleX(${t.dir})`; t._dir = t.dir; }
   }
   function face(t, x) { if (Math.abs(x - t.x) > 4) t.dir = x > t.x ? 1 : -1; }
   function setWalking(t, on) { t.img.classList.toggle('walking', on); }
@@ -825,6 +852,10 @@ const Town = (() => {
   function frame(now) {
     if (!running) return;
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    // Every layout READ happens here, before anything writes a style this frame.
+    // Interleaved reads and writes force a synchronous layout of the whole town –
+    // ~1500 SVG nodes – and there were two of them per frame.
+    const trainR = trainEl.classList.contains('running') ? stageRect(trainEl) : null;
     // Scrolling: a fling glides to a stop; the arrows glide to the next screen.
     if (panVel) {
       setScroll(scrollX + panVel * dt);
@@ -838,7 +869,7 @@ const Town = (() => {
     }
     // Carrying a friend to the edge of the screen scrolls the town along with them.
     if (dragging && dragging.last) {
-      const vr = view.getBoundingClientRect(), px = dragging.last.clientX - vr.left, edge = vr.width * 0.09;
+      const vr = viewRect(), px = dragging.last.clientX - vr.left, edge = vr.width * 0.09;
       let push = 0;
       if (px < edge) push = -(1 - px / edge); else if (px > vr.width - edge) push = 1 - (vr.width - px) / edge;
       if (push) {
@@ -860,9 +891,8 @@ const Town = (() => {
       }
     }
     // Friends wave as the train passes.
-    if (trainEl.classList.contains('running')) {
-      const r = stageRect(trainEl);
-      townies.forEach(t => { if (!t.waved && free(t) && t.x > r.x - 30 && t.x < r.right + 30) { t.waved = true; showBubble(t, '🚂', 1300); if (Math.random() < 0.5) laugh(t); } });
+    if (trainR) {
+      townies.forEach(t => { if (!t.waved && free(t) && t.x > trainR.x - 30 && t.x < trainR.right + 30) { t.waved = true; showBubble(t, '🚂', 1300); if (Math.random() < 0.5) laugh(t); } });
     }
     raf = requestAnimationFrame(frame);
   }
