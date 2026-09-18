@@ -13,8 +13,12 @@ const App = (() => {
   // of a quick second tap entirely – so the letter tiles felt laggy and sometimes
   // dropped a tap, while the minigames (already pointerdown) felt fine.
   // No preventDefault: WebKit would suppress :active, which is the press feedback.
+  // No isPrimary check: on a touchscreen every finger that isn't the first one
+  // currently down reports isPrimary false, so a hand resting on the glass would
+  // silently eat every tap. Double-firing is already ruled out by not listening
+  // for click at all.
   const tap = (el, fn) => el && el.addEventListener('pointerdown', e => {
-    if (!e.isPrimary || e.button) return;
+    if (e.button) return;
     fn(e);
   });
 

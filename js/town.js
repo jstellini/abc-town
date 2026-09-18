@@ -87,9 +87,16 @@ const Town = (() => {
   // #town-view is a static full-screen box, so measure it once per visit rather
   // than every frame of a drag. Invalidated on resize/rotate.
   let viewR = null;
-  function viewRect() { return viewR || (viewR = view.getBoundingClientRect()); }
+  // A zero width means it was measured while the view was display:none – never
+  // cache that, the drag edge maths below divides by it.
+  function viewRect() {
+    if (!viewR || !viewR.width) viewR = view.getBoundingClientRect();
+    return viewR;
+  }
   window.addEventListener('resize', () => { viewR = null; });
   window.addEventListener('orientationchange', () => setTimeout(() => { viewR = null; }, 300));
+  // iOS resizes the visual viewport (URL bar, split view) without a window resize.
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', () => { viewR = null; });
   // An element's box in stage coordinates (what character positions use).
   function stageRect(el) {
     const r = el.getBoundingClientRect(), sr = stage.getBoundingClientRect();
@@ -724,6 +731,7 @@ const Town = (() => {
   function enter(opts = {}) {
     view = $('#town-view'); stage = $('#town-stage'); layer = $('#townies'); trainEl = $('#train');
     clearTimeout(parkTimer); view.classList.remove('parked');
+    viewR = null;   // the view was display:none until the line above
     focusLetter = opts.focus || null;
     setupScenery();
     layer.innerHTML = ''; townies = []; dragging = null;
