@@ -59,7 +59,12 @@ so nothing depends on any one PC.
 
 Each letter plays the next two games from the rotation (Find → Pop → Magnets → Train → Ice →
 Paint → Monster, advancing two steps per play), then finishes with Build-a-Letter.
-- **Reveal** – confetti, fanfare, the character bounces in: *"A is for Apple!"*
+- **Reveal** – the new friend arrives as a **silhouette** filling the screen, the same shadow the
+  intro teased: *"Who's inside? Tap to see!"* The first tap opens a window onto its face, the
+  second uncovers the body, the third bursts it open — colour, confetti, fanfare, the letter and
+  the name: *"A is for Apple!"* Each tap sparkles where the finger lands and rings a rung higher.
+  A child who doesn't tap is never stuck: it nudges after seven seconds and opens itself after
+  fourteen, counted from the last tap. Tapping the character after that giggles, as before.
 - **Town** – three screens wide: the **farm**, the **square** and the **park**. Drag the scenery
   (or tap the ◀ ▶ arrows) to scroll; the hills and clouds slide slower for depth. Unlocked
   characters wander, stop to chat ("..."), play tag and laugh. Tap one to hear its letter and see its
@@ -206,6 +211,11 @@ question is about spelling, but a child reasoning by ear shouldn't be punished f
   `js/app.js`. New spoken lines go in `build_lines` in `tools/generate_voice.py`, then
   `python tools/generate_voice.py --missing` (use `--missing`, not `--only`, which splits keys
   on the first hyphen and would read `words-hub` as a letter).
+- **The reveal** – `REVEAL_TAPS` and `REVEAL_RADII` in `js/app.js`: how many taps open the
+  silhouette and how wide the colour circle is after each one. A `circle()` percentage resolves
+  against the diagonal of the art, so the numbers look smaller than they are — 17% is about a
+  face. The circle is centred at `50% 42%` (`.reveal-char .lit` in the CSS) so the first window
+  lands on the eyes; the nudge and the give-up timers are `armReveal`.
 - **Town behaviour** – `js/town.js`: `GROUND_TOP/BOT` (where characters can stand),
   `convoDist()` (how close they must be to chat), `roamTarget()` (how far they wander), and the
   `react()` switch for tap animations. The town is `.town-stage { width: 300% }` in `css/style.css`;

@@ -21,6 +21,7 @@ const App = (() => {
     $$('.screen').forEach(s => s.classList.toggle('active', s.id === 'screen-' + name));
     if (name !== 'game') Games.stop();
     if (name !== 'wordgame') Words.stop();
+    if (name !== 'reveal') clearReveal();
     Fx.clear();
     if (name === 'town') Town.enter(opts); else Town.leave();
     if (name === 'home') buildHome();
@@ -111,6 +112,19 @@ const App = (() => {
   }
 
   // ---------- reveal ----------
+  // The payoff for the whole letter: the friend turns up as the same silhouette
+  // the intro teased, and taps rub the colour back into it. The character is
+  // already earned by finishing the games – tapping only decides when to look.
+  const REVEAL_TAPS = 3;
+  // How wide the colour circle is after each tap; the last one opens it fully.
+  // A circle percentage resolves against the diagonal of the art, so these are
+  // smaller than they look: 17% is about a face, 33% about a body.
+  const REVEAL_RADII = ['0%', '17%', '33%'];
+  let revealTaps = 0, revealShown = true, revealTimers = [];
+  const revealLater = (fn, ms) => revealTimers.push(setTimeout(fn, ms));
+  function clearReveal() { revealTimers.forEach(clearTimeout); revealTimers = []; }
+  const replayOn = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+
   function reveal() {
     const c = current;
     const firstTime = !isUnlocked(c.letter);
@@ -123,14 +137,68 @@ const App = (() => {
     if (mixed) rl.innerHTML = `<span class="up">${c.letter}</span><span class="low">${c.letter.toLowerCase()}</span>`;
     else rl.textContent = Case.label(c.letter);
     rl.style.setProperty('--c', c.color);
-    $('#reveal-char img').src = c.img;
+    $('#reveal-char .dark').src = c.img;
+    $('#reveal-char .lit').src = c.img;
     $('#reveal-name').textContent = c.name;
     $('#reveal-badge').textContent = firstTime ? 'New friend!' : 'Welcome back!';
+    clearReveal();
+    revealTaps = 0;
+    revealShown = false;
+    $('#reveal-inner').classList.add('mystery');
+    $('#reveal-char').style.setProperty('--r', REVEAL_RADII[0]);
+    $('#reveal-q').style.opacity = 1;
     show('reveal');
+    Sfx.whoosh();
+    revealLater(() => Voice.say("Who's inside? Tap to see!", { key: 'reveal-who' }), 500);
+    armReveal(c);
+  }
+
+  // Never leave a three-year-old stuck in front of a shadow: nudge, then open it
+  // for them. Re-armed on every tap, so a child who is getting on with it is not
+  // told to tap the thing they are already tapping.
+  function armReveal(c) {
+    revealLater(nudgeReveal, 7000);
+    revealLater(() => openReveal(c), 14000);
+  }
+
+  function nudgeReveal() {
+    if (revealShown) return;
+    Sfx.boing();
+    replayOn($('#reveal-char'), 'wobble');
+    Voice.say('Tap the shadow to see who it is!', { key: 'reveal-nudge' });
+  }
+
+  // A tap anywhere on the screen counts – the silhouette is the target, but a
+  // small finger that misses it shouldn't feel like nothing happened.
+  function tapReveal(e) {
+    const c = current;
+    if (!c) return;
+    if (revealShown) return;
+    e.preventDefault();
+    revealTaps++;
+    Fx.burst(e.clientX, e.clientY, c.color, 14);
+    if (revealTaps >= REVEAL_TAPS) { openReveal(c); return; }
+    Sfx.rise(revealTaps - 1);
+    clearReveal(); armReveal(c);
+    $('#reveal-char').style.setProperty('--r', REVEAL_RADII[revealTaps]);
+    // The question mark has done its job once the first window opens – and it
+    // sits exactly where the face comes through.
+    $('#reveal-q').style.opacity = 0;
+    replayOn($('#reveal-char .shape'), 'poke');
+  }
+
+  function openReveal(c) {
+    if (revealShown) return;
+    revealShown = true;
+    clearReveal();
+    $('#reveal-char').style.setProperty('--r', '150%');
+    $('#reveal-q').style.opacity = 0;
+    $('#reveal-inner').classList.remove('mystery');
+    replayOn($('#reveal-char .shape'), 'poke');
     Sfx.fanfare();
     Fx.confetti();
-    setTimeout(() => Fx.confetti(80), 700);
-    setTimeout(() => Voice.say(`${c.letter} is for ${c.name}!`, { key: `${c.letter}-reveal` }), 600);
+    revealLater(() => Fx.confetti(80), 700);
+    revealLater(() => Voice.say(`${c.letter} is for ${c.name}!`, { key: `${c.letter}-reveal` }), 600);
   }
 
   // ---------- grown-ups panel ----------
@@ -208,7 +276,13 @@ const App = (() => {
     $('#intro-char').addEventListener('click', () => { Sfx.boing(); $('#intro-char').classList.remove('wobble'); void $('#intro-char').offsetWidth; $('#intro-char').classList.add('wobble'); });
     $('#btn-reveal-town').addEventListener('click', () => { Sfx.tap(); show('town', { focus: current.letter }); });
     $('#btn-reveal-home').addEventListener('click', () => { Sfx.tap(); show('home'); });
-    $('#reveal-char').addEventListener('click', () => { Sfx.giggle(); Voice.say(`${current.name}!`, { key: `${current.letter}-reveal-tap` }); $('#reveal-char').classList.remove('wobble'); void $('#reveal-char').offsetWidth; $('#reveal-char').classList.add('wobble'); });
+    $('#reveal-inner').addEventListener('pointerdown', tapReveal);
+    $('#reveal-char').addEventListener('click', () => {
+      if (!revealShown) return; // still a shadow – tapReveal has it
+      Sfx.giggle();
+      Voice.say(`${current.name}!`, { key: `${current.letter}-reveal-tap` });
+      replayOn($('#reveal-char'), 'wobble');
+    });
 
     holdToOpen($('#btn-parent'), 1200, openParent);
     $('#pp-close').addEventListener('click', () => $('#parent-panel').classList.add('hidden'));

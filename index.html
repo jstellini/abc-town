@@ -110,13 +110,19 @@
 
   <!-- Character reveal -->
   <section id="screen-reveal" class="screen">
-    <div class="reveal-inner">
+    <div id="reveal-inner" class="reveal-inner">
       <div id="reveal-badge" class="reveal-badge">New friend!</div>
       <div class="reveal-row">
         <div id="reveal-letter" class="reveal-letter">A</div>
-        <div id="reveal-char" class="reveal-char"><img alt=""></div>
+        <!-- Two copies of the same art: a flat silhouette, and the colour one on
+             top clipped to a circle that each tap widens. -->
+        <div id="reveal-char" class="reveal-char">
+          <div class="shape"><img class="dark" alt=""><img class="lit" alt="" aria-hidden="true"></div>
+          <span id="reveal-q" class="reveal-q">?</span>
+        </div>
       </div>
       <div id="reveal-name" class="reveal-name">Apple</div>
+      <div id="reveal-ask" class="reveal-ask">Who's inside? Tap to see!</div>
       <div class="reveal-btns">
         <button id="btn-reveal-town" class="big-btn">🏡 &nbsp;Visit town</button>
         <button id="btn-reveal-home" class="big-btn alt">🔤 &nbsp;More letters</button>
