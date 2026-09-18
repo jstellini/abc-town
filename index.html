@@ -218,21 +218,21 @@
 
   <div id="parent-panel" class="modal hidden">
     <div class="modal-box">
-      <h2>Grown-ups</h2>
-      <p>Characters collected: <b id="pp-count">0</b> / 26</p>
-      <p class="muted">Voice: <span id="pp-voice-name"></span></p>
+      <header class="pp-head">
+        <h2>Grown-ups</h2>
+        <button id="pp-close" class="pp-x" aria-label="Close">✕</button>
+      </header>
+      <div class="pp-count"><b id="pp-count">0</b><span>of 26 friends collected</span></div>
       <div class="pp-field">
         <span class="pp-label">Letters</span>
         <div id="pp-case" class="seg">
-          <button class="seg-btn" data-case="upper">A<small>big</small></button>
-          <button class="seg-btn" data-case="lower">a<small>little</small></button>
-          <button class="seg-btn" data-case="mixed">Aa<small>both</small></button>
+          <button class="seg-btn" data-case="upper"><span class="seg-glyph">A</span><small>big</small></button>
+          <button class="seg-btn" data-case="lower"><span class="seg-glyph">a</span><small>little</small></button>
+          <button class="seg-btn" data-case="mixed"><span class="seg-glyph">Aa</span><small>both</small></button>
         </div>
       </div>
-      <button id="pp-voice" class="pp-btn">🔊 Test the voice</button>
-      <button id="pp-unlock" class="pp-btn">🔓 Unlock everyone (for testing)</button>
-      <button id="pp-reset" class="pp-btn danger">🗑 Reset progress</button>
-      <button id="pp-close" class="pp-btn">Close</button>
+      <button id="pp-unlock" class="pp-btn">🔓 &nbsp;Unlock everyone (and word games)</button>
+      <button id="pp-reset" class="pp-btn danger">🗑 &nbsp;Reset progress</button>
     </div>
   </div>
 

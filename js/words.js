@@ -22,7 +22,8 @@ const Words = (() => {
   const GAMES = [
     { id: 'starts', title: 'Who starts with…?', icon: '🔤', make: startsGame },
     { id: 'build', title: 'Build the word', icon: '🧩', make: buildWordGame },
-    { id: 'finish', title: 'Finish the word', icon: '✏️', make: finishWordGame },
+    { id: 'make', title: 'Make a word', icon: '✏️', make: makeWordGame },
+    { id: 'basket', title: 'Which basket?', icon: '🧺', make: basketGame },
   ];
 
   function openHub() {
@@ -153,8 +154,13 @@ const Words = (() => {
   }
 
   // ---------- Game 2: Build the word ----------
-  // A spoken three-letter word, three slots ghosting it, and a tray of letter
+  // A picture and its word: three slots ghosting the word, and a tray of letter
   // tiles. Tap a tile and it flies into the next empty slot.
+  //
+  // The picture is the point of the round – it says which word this is without
+  // the child having to read the ghosts or hold the spoken word in their head,
+  // and it is still there to look at halfway through. So the words come from the
+  // three-letter PICTURE_WORDS rather than all of TRAIN_WORDS.
   //
   // Every clip this game speaks already exists: {L}-tick for each letter as it
   // lands and word-<word> for the finished word, the same pair the town train
@@ -162,7 +168,7 @@ const Words = (() => {
   function buildWordGame(onDone) {
     const ROUNDS = 3;
     const el = $('#word-area');
-    const words = shuffle(TRAIN_WORDS.slice()).slice(0, ROUNDS);
+    const words = shuffle(PICTURE_WORDS.filter(p => p.word.length === 3)).slice(0, ROUNDS);
     let round = 0, running = true, timers = [];
     // Voice.say shares one Audio element and pauses whatever is playing, so
     // every delayed line goes through here and is cancelled together.
@@ -170,7 +176,7 @@ const Words = (() => {
     const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
 
     function ask() {
-      const word = words[round];
+      const { word, pic } = words[round];
       const letters = [...word.toUpperCase()];
       // Words are written lowercase, so a mixed-mode ghost never reads "cAt" –
       // the mixing happens in the tray, and Case.same decides what fits.
@@ -198,10 +204,13 @@ const Words = (() => {
       say();
 
       el.className = 'word-area build';
-      el.innerHTML = `<div class="word-slots">${ghosts.map((g, i) => `<div class="wslot${i === 0 ? ' next' : ''}"><span class="wghost">${g}</span></div>`).join('')}</div>
+      el.innerHTML = `<div class="word-pic">${pic}</div>
+        <div class="word-slots">${ghosts.map((g, i) => `<div class="wslot${i === 0 ? ' next' : ''}"><span class="wghost">${g}</span></div>`).join('')}</div>
         <div class="word-tray"></div>`;
       const slots = Array.from(el.querySelectorAll('.wslot'));
       const trayEl = el.querySelector('.word-tray');
+      // Tapping the picture is how a child asks "what is it again?".
+      el.querySelector('.word-pic').addEventListener('pointerdown', e => { e.preventDefault(); Sfx.tap(); Voice.say(`${word}!`, { key: `word-${word}` }); });
 
       tray.forEach((tile, i) => {
         const b = document.createElement('button');
@@ -290,73 +299,63 @@ const Words = (() => {
     return { stop() { running = false; clearTimers(); document.querySelectorAll('.wfly').forEach(n => n.remove()); } };
   }
 
-  // ---------- Game 3: Finish the word ----------
-  // A picture, its word with the first letter missing, and three tiles. Tap the
-  // letter the word starts with and it flies into the gap; the finished word is
-  // then read back letter by letter and said.
+  // Every picture word by name, for the games that show one.
+  const PIC = Object.fromEntries(PICTURE_WORDS.map(p => [p.word, p.pic]));
+
+  // ---------- Game 3: Make a word ----------
+  // A word family: "at" waits in the middle with a rack of front letters under
+  // it. Tap one, it snaps on, the picture lands on the shelf and the voice says
+  // the new word – cat, hat, bat.
   //
-  // The mirror image of "Who starts with…?": that one gives the letter and asks
-  // for the word, this one gives the word and asks for the letter.
+  // Unlike the other three this is a machine to play with rather than a question
+  // to get right: every tile in the rack makes a real word, so there is nothing
+  // to get wrong, and the skill – swapping the sound on the front of a word you
+  // already know – is the one that actually starts children reading.
   //
-  // It is always the FIRST letter that is missing. The ends of a word are the
-  // only letters a three-year-old can pick out of it – the vowel in the middle of
-  // "cat" is the hardest sound there is – and the last letter is a trap in half
-  // the list: the h of fish, the silent e of five, the ng of ring. The first
-  // letter is honest for every word here.
-  //
-  // Voice: word-<word> for the word (PICTURE_WORDS words all have a clip) and
-  // {L}-tick per letter, the pair the town train and Build-the-word both use.
-  function finishWordGame(onDone) {
-    const ROUNDS = 3;
+  // Which is why WORD_FAMILIES has to hold real words with pictures and clips:
+  // a made-up word would have nothing to show and nothing to say.
+  function makeWordGame(onDone) {
+    const FAMILIES = 2;
     const el = $('#word-area');
-    const rounds = shuffle(PICTURE_WORDS.slice()).slice(0, ROUNDS);
-    let round = 0, running = true, timers = [];
+    const families = shuffle(WORD_FAMILIES.slice()).slice(0, FAMILIES);
+    const TOTAL = families.reduce((n, f) => n + f.starts.length, 0);
+    let family = 0, made = 0, running = true, timers = [];
     const later = (fn, ms) => { const t = setTimeout(() => { if (running) fn(); }, ms); timers.push(t); return t; };
     const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
 
     function ask() {
-      const { word, pic } = rounds[round];
-      const letters = [...word.toUpperCase()];
-      const answer = letters[0];
-      // Same rule as Build-the-word: a distractor that is in the word anyway would
-      // leave the child staring at two tiles that both look right.
-      const spare = shuffle(ALL_LETTERS.filter(L => !letters.includes(L))).slice(0, 2);
-      // Words are written lowercase, so mixed mode shows the word lowercase and
-      // mixes the case of the TRAY instead – the finished word never reads "cAt".
-      const show = L => (Case.get() === 'mixed' ? L.toLowerCase() : Case.glyph(L));
-      const glyphs = letters.map(show);
-      const all = [answer, ...spare];
-      const lower = Case.glyphs('A', all.length).map(g => g === 'a');
-      const tray = shuffle(all.map((L, i) => ({ letter: L, glyph: lower[i] ? L.toLowerCase() : L })));
+      const { rime, starts } = families[family];
+      const words = starts.map(s => s + rime);
+      // Words are written lowercase, so mixed mode keeps the word lowercase and
+      // mixes the case of the RACK instead – the same rule Build-the-word uses.
+      const show = c => (Case.get() === 'mixed' ? c.toLowerCase() : Case.glyph(c.toUpperCase()));
+      const rimeGlyphs = [...rime].map(show);
+      const lower = Case.glyphs('A', starts.length).map(g => g === 'a');
+      const rack = starts.map((c, i) => ({ letter: c.toUpperCase(), word: c + rime, glyph: lower[i] ? c : c.toUpperCase(), made: false }));
 
-      let wrong = 0, busy = false, filled = false;
-      $('#word-prompt').textContent = 'Finish the word';
-      setStars(round, ROUNDS);
+      let done = 0, busy = false;
+      $('#word-prompt').textContent = 'Make a word';
+      setStars(made, TOTAL);
       const card = $('#word-target');
       card.className = 'target-card word';
-      card.textContent = '_' + glyphs.slice(1).join('');
-      // Not the answer letter's colour, the way Build-the-word colours its card:
-      // the tray tiles are coloured per letter, so that would give the answer away.
+      card.textContent = '_' + rimeGlyphs.join('');
       card.style.setProperty('--c', '#ff8a00');
       replay(card, 'pulse');
-      // The word has to be said: the picture names it, but the child can't read
-      // what's left of it, and the missing letter is the whole question.
-      const sayWord = () => Voice.say(`${word}!`, { key: `word-${word}` });
-      const say = () => { Voice.say('Finish the word! Which letter is missing?', { key: 'words-finish' }); later(sayWord, 2400); };
+      const say = () => Voice.say('Make a word! Tap a letter!', { key: 'words-make' });
       card.onclick = say;
       say();
 
-      el.className = 'word-area finish';
-      el.innerHTML = `<div class="word-pic">${pic}</div>
-        <div class="word-slots">${glyphs.map((g, i) => (i === 0
-          ? '<div class="wslot gap next"></div>'
-          : `<div class="wslot given"><span class="wghost">${g}</span></div>`)).join('')}</div>
+      el.className = 'word-area make';
+      el.innerHTML = `<div class="word-shelf">${words.map(() => '<div class="shelf-frame"></div>').join('')}</div>
+        <div class="word-slots">
+          <div class="wslot gap next"></div>
+          ${rimeGlyphs.map(g => `<div class="wslot given"><span class="wghost">${g}</span></div>`).join('')}
+        </div>
         <div class="word-tray"></div>`;
+      const shelf = Array.from(el.querySelectorAll('.shelf-frame'));
       const gap = el.querySelector('.wslot.gap'), trayEl = el.querySelector('.word-tray');
-      // Tapping the picture is how a child asks "what is it again?".
-      el.querySelector('.word-pic').addEventListener('pointerdown', e => { e.preventDefault(); if (!filled) { Sfx.tap(); sayWord(); } });
 
-      tray.forEach((tile, i) => {
+      rack.forEach((tile, i) => {
         const b = document.createElement('button');
         b.className = 'wtile';
         b.textContent = tile.glyph;
@@ -368,20 +367,12 @@ const Words = (() => {
       });
 
       function tap(tile, node) {
-        if (!running || busy || filled) return;
-        if (Case.same(tile.glyph, answer)) { place(tile, node); return; }
-        wrong++;
-        Sfx.boing();
-        replay(node, 'wobble');
-        if (wrong === 1) Voice.say('Not quite. Try again!', { key: 'words-try' });
-        // The same forgiving idiom as the rest: after two misses, show them.
-        if (wrong >= 2) tray.forEach(t => { if (Case.same(t.glyph, answer)) t.el.classList.add('hint'); });
-      }
-
-      function place(tile, node) {
-        busy = true; filled = true;
-        // Fly the tile into the gap, then let the slot's own glyph take over, so
-        // the finished word reads in one case whichever tile was tapped.
+        if (!running || busy) return;
+        // A letter already used just says its word again: tapping the one you
+        // liked twice is playing with it, not a mistake.
+        if (tile.made) { Sfx.tap(); Voice.say(`${tile.word}!`, { key: `word-${tile.word}` }); return; }
+        busy = true;
+        tile.made = true;
         const from = node.getBoundingClientRect(), to = gap.getBoundingClientRect();
         const fly = node.cloneNode(true);
         fly.className = 'wtile wfly';
@@ -389,38 +380,43 @@ const Words = (() => {
         fly.style.left = from.left + 'px'; fly.style.top = from.top + 'px';
         fly.style.width = from.width + 'px'; fly.style.height = from.height + 'px';
         document.body.appendChild(fly);
-        node.classList.add('spent');
-        tray.forEach(t => t.el.classList.remove('hint'));
+        node.classList.add('used');
         requestAnimationFrame(() => {
           fly.style.transform = `translate(${to.left + to.width / 2 - from.left - from.width / 2}px,${to.top + to.height / 2 - from.top - from.height / 2}px) scale(${to.height / from.height})`;
         });
         later(() => {
           fly.remove();
-          // 'filled', not 'given': the letter the child put there is the one in
-          // its friend's colour, the rest stay ink.
           gap.className = 'wslot filled';
-          gap.style.setProperty('--c', CHAR_BY_LETTER[answer].color);
-          gap.innerHTML = `<span class="wghost">${show(answer)}</span>`;
-          card.textContent = glyphs.join('');
-          Sfx.click(); Sfx.sparkle();
-          const c = centre(gap); Fx.burst(c.x, c.y, CHAR_BY_LETTER[answer].color, 20);
-          setStars(round + 1, ROUNDS);
-          busy = false;
-          solved();
+          gap.style.setProperty('--c', CHAR_BY_LETTER[tile.letter].color);
+          gap.innerHTML = `<span class="wghost">${show(tile.letter)}</span>`;
+          Sfx.click();
+          Voice.say(`${tile.word}!`, { key: `word-${tile.word}` });
+          // The picture lands on the shelf in the order the words were made, so
+          // the shelf reads as a collection rather than a score.
+          const frame = shelf[done];
+          frame.textContent = PIC[tile.word] || '⭐';
+          frame.classList.add('full');
+          const c = centre(frame); Fx.burst(c.x, c.y, CHAR_BY_LETTER[tile.letter].color, 16);
+          Sfx.sparkle();
+          made++; done++;
+          setStars(made, TOTAL);
+          if (done >= words.length) { finished(); return; }
+          // Empty the slot again: the machine is ready for the next letter.
+          later(() => {
+            gap.className = 'wslot gap next';
+            gap.innerHTML = '';
+            gap.style.removeProperty('--c');
+            busy = false;
+          }, 1300);
         }, 360);
       }
 
-      // Read the whole word back, a letter at a time, then say it.
-      function solved() {
-        const slots = Array.from(el.querySelectorAll('.wslot'));
-        slots.forEach((s, i) => later(() => {
-          replay(s, 'lit');
-          Voice.say(`${letters[i]}!`, { key: `${letters[i]}-tick` });
-        }, 400 + i * 650));
-        const end = 400 + slots.length * 650;
-        later(() => { el.classList.add('done'); Sfx.correct(); sayWord(); }, end);
-        round++;
-        later(() => (round >= ROUNDS ? win() : ask()), end + 1600);
+      function finished() {
+        el.classList.add('done');
+        Sfx.fanfare();
+        Fx.confetti(40);
+        family++;
+        later(() => (family >= families.length ? win() : ask()), 2400);
       }
     }
 
@@ -436,6 +432,114 @@ const Words = (() => {
 
     ask();
     return { stop() { running = false; clearTimers(); document.querySelectorAll('.wfly').forEach(n => n.remove()); } };
+  }
+
+  // ---------- Game 4: Which basket? ----------
+  // Two baskets, each marked with a letter, and pictures to sort into them one at
+  // a time. The lineup games ask "which of these is the answer"; this one hands
+  // over a thing and asks where it belongs, and the baskets fill up as it goes.
+  function basketGame(onDone) {
+    const GOAL = 6;
+    const el = $('#word-area');
+    // Two letters with enough pictures between them, never two that sound alike:
+    // "cat" and "key" both start with the same sound, and a child sorting by ear
+    // would be right and marked wrong.
+    const byLetter = {};
+    PICTURE_WORDS.forEach(p => { (byLetter[p.word[0].toUpperCase()] = byLetter[p.word[0].toUpperCase()] || []).push(p); });
+    const rich = Object.keys(byLetter).filter(L => byLetter[L].length >= GOAL / 2);
+    const [a, b] = shuffle(rich.slice()).reduce((pairIn, L) => {
+      if (pairIn.length === 2) return pairIn;
+      // Not the same sound, and not the same colour either: the letter colours
+      // repeat every seven letters, and two baskets in the same purple are one
+      // basket as far as a three-year-old is concerned.
+      const clash = pairIn.some(o => CHAR_BY_LETTER[o].sound === CHAR_BY_LETTER[L].sound
+        || CHAR_BY_LETTER[o].color === CHAR_BY_LETTER[L].color || CLASH[o] === L);
+      return clash ? pairIn : [...pairIn, L];
+    }, []);
+    const items = shuffle([
+      ...shuffle(byLetter[a].slice()).slice(0, GOAL / 2).map(p => ({ ...p, letter: a })),
+      ...shuffle(byLetter[b].slice()).slice(0, GOAL / 2).map(p => ({ ...p, letter: b })),
+    ]);
+    let round = 0, done = 0, running = true, timers = [];
+    const later = (fn, ms) => { const t = setTimeout(() => { if (running) fn(); }, ms); timers.push(t); return t; };
+    const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
+
+    $('#word-prompt').textContent = 'Which basket?';
+    const card = $('#word-target');
+    card.className = 'target-card word';
+    card.textContent = Case.label(a) + Case.label(b);
+    card.style.setProperty('--c', CHAR_BY_LETTER[a].color);
+    el.className = 'word-area sorting';
+    el.innerHTML = `<div class="sort-stage"></div>
+      <div class="sort-row">${[a, b].map(L => `<button class="sort-basket" data-l="${L}" style="--c:${CHAR_BY_LETTER[L].color}">
+          <span class="sort-load"></span><span class="sort-letter">${Case.label(L)}</span>
+        </button>`).join('')}</div>`;
+    const stage = el.querySelector('.sort-stage');
+    const baskets = Array.from(el.querySelectorAll('.sort-basket'));
+
+    function ask() {
+      const item = items[round];
+      let wrong = 0, busy = false;
+      setStars(done, GOAL);
+      stage.innerHTML = `<div class="sort-item"><span>${item.pic}</span></div>`;
+      const node = stage.querySelector('.sort-item');
+      const say = () => Voice.say(`${item.word}!`, { key: `word-${item.word}` });
+      card.onclick = say;
+      later(say, 350);
+      later(() => { if (round === 0) Voice.say('Which basket does it go in?', { key: 'words-basket' }); }, 1300);
+
+      baskets.forEach(basket => {
+        basket.onpointerdown = e => {
+          e.preventDefault();
+          if (!running || busy) return;
+          if (basket.dataset.l !== item.letter) {
+            wrong++;
+            Sfx.boing();
+            replay(basket, 'wobble');
+            if (wrong === 1) Voice.say('Not quite. Try again!', { key: 'words-try' });
+            if (wrong >= 2) baskets.forEach(o => o.classList.toggle('hint', o.dataset.l === item.letter));
+            return;
+          }
+          busy = true;
+          baskets.forEach(o => o.classList.remove('hint'));
+          drop(node, basket, item);
+        };
+      });
+    }
+
+    function drop(node, basket, item) {
+      const from = node.getBoundingClientRect(), to = basket.getBoundingClientRect();
+      node.classList.add('flying');
+      node.style.transform = `translate(${to.left + to.width / 2 - from.left - from.width / 2}px,${to.top + to.height * 0.35 - from.top - from.height / 2}px) scale(.45)`;
+      Sfx.whoosh();
+      later(() => {
+        node.remove();
+        const load = basket.querySelector('.sort-load');
+        const bit = document.createElement('span');
+        bit.textContent = item.pic;
+        bit.style.setProperty('--rot', (Math.random() * 24 - 12).toFixed(1) + 'deg');
+        load.appendChild(bit);
+        replay(basket, 'catch');
+        Sfx.click(); Sfx.sparkle();
+        const c = centre(basket); Fx.burst(c.x, c.y - to.height * 0.2, CHAR_BY_LETTER[item.letter].color, 16);
+        done++; round++;
+        setStars(done, GOAL);
+        later(() => (done >= GOAL ? win() : ask()), 900);
+      }, 420);
+    }
+
+    function win() {
+      el.className = 'word-area done';
+      el.innerHTML = '';
+      $('#word-prompt').textContent = 'Word Town';
+      Sfx.fanfare(); Fx.confetti(70);
+      timers.push(setTimeout(() => Fx.confetti(50), 600));
+      Voice.say('Brilliant! You did it!', { key: 'words-done' });
+      timers.push(setTimeout(() => { running = false; onDone(); }, 2400));
+    }
+
+    ask();
+    return { stop() { running = false; clearTimers(); } };
   }
 
   return { GAMES, openHub, play, stop };

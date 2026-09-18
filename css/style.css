@@ -565,10 +565,13 @@ img { -webkit-user-drag: none; user-select: none; }
 #screen-words .bar-title { color: #3b3f63; text-shadow: none; }
 .words-menu {
   position: absolute; top: 11vh; left: 0; right: 0; bottom: 0;
-  display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 3vh 3vw; padding: 3vh 6vw;
+  /* Two columns rather than a row that wraps: with four games a flex row left one
+     tile stranded underneath, and a 2x2 block keeps every target thumb-sized. */
+  display: grid; grid-template-columns: repeat(2, auto);
+  align-content: center; justify-content: center; gap: 3vh 3vw; padding: 3vh 6vw;
 }
 .word-tile {
-  width: 34vh; height: 34vh; border-radius: 5vh; background: #fff; box-shadow: var(--shadow);
+  width: min(30vh, 34vw); height: min(30vh, 34vw); border-radius: 5vh; background: #fff; box-shadow: var(--shadow);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5vh;
   animation: card-in .5s cubic-bezier(.34,1.56,.64,1) backwards; transition: transform .12s;
 }
@@ -596,8 +599,11 @@ img { -webkit-user-drag: none; user-select: none; }
 .word-card.right { transform: scale(1.12); }
 .word-card.dim { opacity: .25; transform: scale(.9); }
 
-/* Build the word: a row of ghosted slots above a tray of letter tiles. */
-.word-area.build { flex-direction: column; gap: 5vh; }
+/* Build the word: the picture, a row of ghosted slots, a tray of letter tiles. */
+.word-area.build { flex-direction: column; gap: 3.5vh; }
+.word-pic { font-size: 17vh; line-height: 1; cursor: pointer; filter: drop-shadow(0 1vh 1vh rgba(0,0,0,.18)); transition: transform .2s; }
+.word-pic:active { transform: scale(.95); }
+.word-area.build.done .word-pic { animation: built-bounce .9s cubic-bezier(.34,1.56,.64,1); }
 .word-slots { display: flex; gap: 2.5vw; }
 .wslot {
   width: 17vh; height: 20vh; border-radius: 3vh; background: rgba(255,255,255,.45);
@@ -629,18 +635,72 @@ img { -webkit-user-drag: none; user-select: none; }
 /* Spent tiles keep their space so the tray never reflows under a finger. */
 .wtile.spent { opacity: 0; pointer-events: none; transform: scale(.6); }
 .wfly { position: fixed; z-index: 50; margin: 0; pointer-events: none; transition: transform .36s cubic-bezier(.34,1.56,.64,1); }
-/* Finish the word: a picture, its word with the first letter missing, and the
-   same tray of tiles Build-the-word uses. */
-.word-area.finish { flex-direction: column; gap: 4vh; }
-.word-pic { font-size: 22vh; line-height: 1; filter: drop-shadow(0 1vh 1vh rgba(0,0,0,.18)); transition: transform .2s; }
-.word-pic:active { transform: scale(.95); }
-.word-area.finish.done .word-pic { animation: built-bounce .9s cubic-bezier(.34,1.56,.64,1); }
-/* The letters already there: ink, not a friend's colour, so only the one the
-   child places is coloured in. */
+/* The rime's letters in Make-a-word: ink, not a friend's colour, so only the one
+   the child puts on the front is coloured in. */
 .wslot.given { border-color: transparent; background: #fff; box-shadow: var(--shadow); }
 .wslot.given .wghost { color: #3b3f63; }
-/* The read-back pops each letter as it is spoken. */
-.wslot.lit { animation: built-bounce .55s cubic-bezier(.34,1.56,.64,1); }
+
+/* Make a word: a shelf of frames for the words made so far, the word being made
+   under it, and the rack of front letters. */
+.word-area.make { flex-direction: column; gap: 4vh; }
+.word-shelf { display: flex; gap: 2.5vw; }
+.shelf-frame {
+  width: 15vh; height: 15vh; border-radius: 3vh; border: .7vh dashed rgba(60,80,110,.25);
+  display: flex; align-items: center; justify-content: center; font-size: 9vh; line-height: 1;
+  transition: border-color .3s, background .3s;
+}
+.shelf-frame.full { border-color: transparent; background: #fff; box-shadow: var(--shadow); animation: card-in .5s cubic-bezier(.34,1.56,.64,1); }
+.word-area.make.done .shelf-frame.full { animation: built-bounce .9s cubic-bezier(.34,1.56,.64,1); }
+/* A letter that has had its turn stays on the rack – it can be tapped again to
+   hear its word – but steps back so the unused ones read as the next thing. */
+.wtile.used { opacity: .45; transform: scale(.88); }
+
+/* Which basket? One picture at a time above two baskets that fill up. */
+.word-area.sorting { flex-direction: column; justify-content: center; gap: 5vh; padding-bottom: 3vh; }
+.sort-stage { height: 24vh; display: flex; align-items: center; justify-content: center; }
+.sort-item {
+  font-size: 18vh; line-height: 1; filter: drop-shadow(0 1vh 1vh rgba(0,0,0,.18));
+  animation: card-in .45s cubic-bezier(.34,1.56,.64,1), bob 2.6s ease-in-out .45s infinite;
+}
+.sort-item.flying { transition: transform .42s cubic-bezier(.34,1.56,.64,1); }
+.sort-row { display: flex; gap: 8vw; }
+.sort-basket {
+  position: relative; width: 34vh; height: 24vh; padding: 0; border: 0; background: none;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+/* The basket itself: a tapered box with a rim, drawn rather than drawn on. */
+.sort-basket::before {
+  content: ''; position: absolute; left: 8%; right: 8%; bottom: 0; height: 74%;
+  /* Woven, or it reads as a plant pot: fine stripes over the colour, darkening
+     towards the bottom. */
+  background:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.10) 0 .5vh, transparent .5vh 1.6vh),
+    repeating-linear-gradient(rgba(255,255,255,.14) 0 .4vh, transparent .4vh 1.8vh),
+    linear-gradient(var(--c, #ff8a00), rgba(0,0,0,.28)), var(--c, #ff8a00);
+  border-radius: 1.5vh 1.5vh 4vh 4vh; box-shadow: var(--shadow);
+  clip-path: polygon(6% 0, 94% 0, 84% 100%, 16% 100%);
+}
+.sort-basket::after {
+  content: ''; position: absolute; left: 2%; right: 2%; bottom: 74%; height: 4vh;
+  background: var(--c, #ff8a00); border-radius: 2vh; box-shadow: inset 0 .5vh 0 rgba(255,255,255,.3), var(--shadow);
+}
+.sort-letter {
+  position: relative; z-index: 1; margin-bottom: 3vh;
+  font-family: var(--font-letter); font-weight: 700; font-size: 11vh; line-height: 1; color: #fff;
+  text-shadow: 0 .5vh 0 rgba(0,0,0,.25);
+}
+/* What has been sorted so far, peeking over the rim. */
+/* What has been sorted so far, peeking over the rim – overlapped and clipped to
+   the basket, so six of them still look like a basketful rather than a row. */
+.sort-load {
+  position: absolute; left: 10%; right: 10%; bottom: 68%; z-index: 1;
+  display: flex; justify-content: center; overflow: hidden;
+}
+.sort-load span { font-size: 5vh; line-height: 1; margin: 0 -.7vh; transform: rotate(var(--rot, 0deg)); animation: card-in .4s cubic-bezier(.34,1.56,.64,1); }
+.sort-basket:active { transform: scale(.97); }
+.sort-basket.wobble { animation: shake .45s; }
+.sort-basket.hint { animation: hint 1s ease-in-out infinite; }
+.sort-basket.catch::before { animation: jiggle .5s; }
 
 /* The header card shows the whole word here, not a single letter. */
 .target-card.word { width: auto; min-width: 8.5vh; padding: 0 1.8vh; font-size: 4vh; letter-spacing: .06em; }
@@ -810,24 +870,56 @@ img { -webkit-user-drag: none; user-select: none; }
 #rotate-overlay span { display: block; font-size: 20vmin; animation: rotate-hint 2s ease-in-out infinite; }
 @media (orientation: portrait) and (pointer: coarse) { #rotate-overlay { display: flex; } }
 
-.modal { position: absolute; inset: 0; z-index: 800; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; }
-.modal-box { background: #fff; border-radius: 3vh; padding: 3vh 4vh; width: min(70vw, 480px); display: flex; flex-direction: column; gap: 1.2vh; box-shadow: var(--shadow); }
-.modal-box h2 { margin: 0 0 .5vh; font-size: 4.5vh; }
-.modal-box p { margin: 0; font-size: 2.6vh; }
-.modal-box .muted { color: #777; font-size: 2.1vh; }
-.pp-field { display: flex; align-items: center; gap: 1.2vh; }
-.pp-label { font-size: 2.8vh; font-weight: 600; color: #3b3f63; }
-.seg { flex: 1; display: flex; gap: .6vh; padding: .5vh; border-radius: 1.5vh; background: #eef1f7; }
-.seg-btn {
-  flex: 1; padding: .8vh .4vh; border-radius: 1.1vh; background: transparent; color: #6a7190;
-  font-family: var(--font-letter); font-size: 3.2vh; font-weight: 700; line-height: 1.1;
-  display: flex; flex-direction: column; align-items: center; gap: .2vh;
+.modal { position: absolute; inset: 0; z-index: 800; background: rgba(24,28,52,.5); backdrop-filter: blur(.6vh); display: flex; align-items: center; justify-content: center; }
+.modal-box {
+  background: #fff; border-radius: 4vh; padding: 3vh 3.5vh 3.5vh; width: min(76vw, 620px);
+  max-height: 92vh; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 2.2vh; box-shadow: 0 3vh 6vh rgba(0,0,0,.35);
+  animation: card-in .4s cubic-bezier(.34,1.56,.64,1);
 }
-.seg-btn small { font-family: var(--font-ui); font-size: 1.5vh; font-weight: 600; opacity: .75; }
-.seg-btn.sel { background: #fff; color: #3b3f63; box-shadow: 0 .3vh .8vh rgba(0,0,0,.12); }
-.pp-btn { padding: 1.6vh; border-radius: 1.5vh; background: #eef1f7; font-size: 2.8vh; font-weight: 600; text-align: left; }
-.pp-btn:active { background: #dfe4ee; }
-.pp-btn.danger { background: #ffe1e1; color: #b00020; }
+.pp-head { display: flex; align-items: center; justify-content: space-between; gap: 2vh; }
+.modal-box h2 { margin: 0; font-size: 4.2vh; color: #3b3f63; }
+.pp-x {
+  width: 6vh; height: 6vh; border-radius: 50%; background: #eef1f7; color: #6a7190;
+  font-size: 3vh; font-weight: 700; line-height: 1; transition: transform .12s, background .2s;
+}
+.pp-x:active { transform: scale(.92); background: #dfe4ee; }
+/* The collection, as a number worth reading across the room. */
+.pp-count {
+  display: flex; align-items: center; gap: 2vh; padding: 1.6vh 2.4vh; border-radius: 2.5vh;
+  background: linear-gradient(120deg, #fff3cf, #ffe8f3);
+}
+.pp-count b { font-family: var(--font-letter); font-size: 6.5vh; line-height: 1; color: #ff4fa3; }
+.pp-count span { font-size: 2.4vh; font-weight: 600; color: #6a7190; line-height: 1.2; }
+.pp-count { white-space: nowrap; }
+.pp-field { display: flex; flex-direction: column; gap: 1.2vh; }
+.pp-label { font-size: 2.6vh; font-weight: 700; color: #6a7190; text-transform: uppercase; letter-spacing: .08em; }
+/* Three big cards rather than a squeezed toggle: this is the one setting a
+   grown-up actually comes in here to change. */
+.seg { display: flex; gap: 1.5vh; }
+.seg-btn {
+  /* A floor as well as a share of the height, the way the top bar has one: these
+     are the fiddliest targets in the app and a grown-up's finger is on them. */
+  flex: 1; height: 15vh; min-height: 84px; padding: 1vh .4vh; border-radius: 2.5vh;
+  background: #f2f5fa; color: #6a7190; border: .5vh solid transparent;
+  font-family: var(--font-letter); font-size: 6vh; font-weight: 700; line-height: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .8vh;
+  transition: transform .12s, background .2s, color .2s, border-color .2s, box-shadow .2s;
+}
+.seg-btn:active { transform: scale(.96); }
+.seg-btn small { font-family: var(--font-ui); font-size: 1.9vh; font-weight: 700; letter-spacing: .02em; opacity: .9; }
+.seg-btn.sel {
+  background: #fff; color: #3b3f63; border-color: #8e44ff;
+  box-shadow: 0 1vh 2vh rgba(142,68,255,.28);
+}
+.seg-btn.sel small { color: #8e44ff; }
+.pp-btn {
+  padding: 2vh 2.4vh; border-radius: 2.5vh; background: #eef1f7; color: #3b3f63;
+  font-size: 2.8vh; font-weight: 700; text-align: left; transition: transform .12s, background .2s;
+}
+.pp-btn:active { transform: scale(.98); background: #dfe4ee; }
+.pp-btn.danger { background: #ffe6e6; color: #c1123a; }
+.pp-btn.danger:active { background: #ffd2d2; }
 
 /* ---------- keyframes ---------- */
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.2vh); } }

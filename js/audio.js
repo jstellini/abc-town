@@ -187,6 +187,5 @@ const Voice = (() => {
       speak(text, rate, pitch);
     },
     stop() { if (synth) synth.cancel(); if (clip) clip.pause(); },
-    voiceName() { return voice ? `${voice.name} (${voice.lang})` : 'no voice found'; },
   };
 })();

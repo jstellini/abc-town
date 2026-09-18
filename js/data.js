@@ -132,18 +132,36 @@ const TRAIN_WORDS = [
 const PICTURE_WORDS = [
   { word: 'ant',    pic: '🐜' }, { word: 'arm',    pic: '💪' }, { word: 'bat',    pic: '🦇' },
   { word: 'bed',    pic: '🛏️' }, { word: 'bee',    pic: '🐝' }, { word: 'box',    pic: '📦' },
-  { word: 'bug',    pic: '🐛' }, { word: 'bus',    pic: '🚌' }, { word: 'car',    pic: '🚗' },
-  { word: 'cat',    pic: '🐱' }, { word: 'cow',    pic: '🐄' }, { word: 'cup',    pic: '🥤' },
-  { word: 'dog',    pic: '🐶' }, { word: 'egg',    pic: '🥚' }, { word: 'fish',   pic: '🐟' },
+  { word: 'bug',    pic: '🐛' }, { word: 'bun',    pic: '🍞' }, { word: 'bus',    pic: '🚌' },
+  { word: 'can',    pic: '🥫' }, { word: 'car',    pic: '🚗' }, { word: 'cat',    pic: '🐱' },
+  { word: 'cow',    pic: '🐄' }, { word: 'cup',    pic: '🥤' }, { word: 'dog',    pic: '🐶' },
+  { word: 'dot',    pic: '🔴' }, { word: 'egg',    pic: '🥚' }, { word: 'fish',   pic: '🐟' },
   { word: 'five',   pic: '5️⃣' }, { word: 'fox',    pic: '🦊' }, { word: 'frog',   pic: '🐸' },
   { word: 'goat',   pic: '🐐' }, { word: 'hat',    pic: '🎩' }, { word: 'hen',    pic: '🐔' },
-  { word: 'ice',    pic: '🧊' }, { word: 'jam',    pic: '🍯' }, { word: 'jet',    pic: '✈️' },
-  { word: 'key',    pic: '🔑' }, { word: 'kid',    pic: '🧒' }, { word: 'leaf',   pic: '🍃' },
-  { word: 'leg',    pic: '🦵' }, { word: 'lip',    pic: '👄' }, { word: 'map',    pic: '🗺️' },
-  { word: 'nut',    pic: '🥜' }, { word: 'owl',    pic: '🦉' }, { word: 'pen',    pic: '🖊️' },
-  { word: 'pig',    pic: '🐷' }, { word: 'pot',    pic: '🍲' }, { word: 'quack',  pic: '🦆' },
-  { word: 'queen',  pic: '👑' }, { word: 'ring',   pic: '💍' }, { word: 'sea',    pic: '🌊' },
-  { word: 'six',    pic: '6️⃣' }, { word: 'sky',    pic: '🌤️' }, { word: 'sun',    pic: '☀️' },
+  { word: 'hot',    pic: '🔥' }, { word: 'hug',    pic: '🤗' }, { word: 'ice',    pic: '🧊' },
+  { word: 'jam',    pic: '🍯' }, { word: 'jet',    pic: '✈️' }, { word: 'key',    pic: '🔑' },
+  { word: 'kid',    pic: '🧒' }, { word: 'leaf',   pic: '🍃' }, { word: 'leg',    pic: '🦵' },
+  { word: 'lip',    pic: '👄' }, { word: 'map',    pic: '🗺️' }, { word: 'mug',    pic: '☕' },
+  { word: 'nut',    pic: '🥜' }, { word: 'owl',    pic: '🦉' }, { word: 'pan',    pic: '🍳' },
+  { word: 'pen',    pic: '🖊️' }, { word: 'pig',    pic: '🐷' }, { word: 'pot',    pic: '🍲' },
+  { word: 'quack',  pic: '🦆' }, { word: 'queen',  pic: '👑' }, { word: 'ring',   pic: '💍' },
+  { word: 'run',    pic: '🏃' }, { word: 'sea',    pic: '🌊' }, { word: 'six',    pic: '6️⃣' },
+  { word: 'sky',    pic: '🌤️' }, { word: 'sun',    pic: '☀️' }, { word: 'ten',    pic: '🔟' },
   { word: 'toy',    pic: '🧸' }, { word: 'tub',    pic: '🛁' }, { word: 'van',    pic: '🚐' },
   { word: 'web',    pic: '🕸️' }, { word: 'zip',    pic: '🤐' }, { word: 'zoo',    pic: '🦁' },
+];
+
+// Word families for Word Town's Make-a-word: a rime ("at") and the three letters
+// that make a word in front of it. The game swaps the front letter and says the
+// new word, so every one of them has to be a real word with a picture in
+// PICTURE_WORDS and a "word-<word>" clip – there is no wrong answer to hide a
+// gap behind. Keep them three long: the rack holds three tiles and the shelf
+// three frames.
+const WORD_FAMILIES = [
+  { rime: 'at', starts: ['c', 'h', 'b'] },
+  { rime: 'ug', starts: ['b', 'h', 'm'] },
+  { rime: 'en', starts: ['h', 'p', 't'] },
+  { rime: 'un', starts: ['s', 'r', 'b'] },
+  { rime: 'ot', starts: ['p', 'h', 'd'] },
+  { rime: 'an', starts: ['v', 'c', 'p'] },
 ];
