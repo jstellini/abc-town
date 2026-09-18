@@ -136,21 +136,27 @@ opens it for testing.
   into the next slot, saying its letter; the finished word is read out. Three words, then back to
   the hub. Tapping a letter that *is* in the word but isn't next just nudges the cursor rather
   than counting as a miss — only a letter that isn't in the word at all does that.
-- **Finish the word** – a picture, its word with the **first letter missing**, and three tiles.
-  Tap the letter the word starts with and it flies into the gap; the finished word is then read
-  back letter by letter and said. Three pictures, then back to the hub. Tap the picture to hear
-  the word again. It is the mirror of *Who starts with…?*: that one gives the letter and asks
-  for the word, this one gives the word and asks for the letter. Always the first letter — the
-  vowel in the middle of "cat" is the hardest sound there is, and the last letter is a trap in
-  half the list (the h of fish, the silent e of five, the ng of ring).
+- **Make a word** – a word family: `_at` in the middle, a rack of front letters under it, and a
+  shelf of three empty frames above. Tap a letter and it snaps on, the picture lands on the shelf
+  and the voice says the new word — *cat*, *hat*, *bat*. Two families, then back to the hub.
+  Nothing here can be wrong: every letter on the rack makes a real word, so it is a machine to
+  play with rather than a question to get right, and tapping a letter you have already used says
+  its word again. Swapping the sound on the front of a word you know is the thing that actually
+  starts children reading, which is why the other three games don't cover it.
+- **Which basket?** – two baskets, each marked with a letter, and six pictures to sort into them
+  one at a time: tap the basket a picture belongs in and it drops in and stacks up over the rim.
+  The lineup games ask *which of these is the answer*; this one hands over a thing and asks where
+  it goes. A wrong basket wobbles, and after two misses the right one glows. The two letters never
+  sound alike (*cat* and *key* start with the same sound) and never share a colour.
 
 Build-the-word's words come from `TRAIN_WORDS` in `js/data.js` (the same 50 the town train
-spells) and Finish-the-word's from `PICTURE_WORDS` beside it, each word with the emoji that
-shows it. Both games speak the pair `Town.startTrain` does — `{L}-tick` per letter, then
-`word-<word>` for the whole word — so the only clips either needed were their prompts.
+spells); Make-a-word's families from `WORD_FAMILIES`; and the pictures for those and for
+Which-basket from `PICTURE_WORDS`, each word with the emoji that shows it. They speak the pair
+`Town.startTrain` does — `{L}-tick` per letter, then `word-<word>` for the whole word — so the
+only clips the games themselves needed were their prompts.
 
-Case works the same way in both: the word is written in one case throughout (lowercase in mixed
-mode), and it is the *tray* that mixes, so a finished word never reads "cAt" while `Case.same`
+Case works the same way throughout: a word is written in one case (lowercase in mixed mode), and
+it is the *tray* or the rack that mixes, so a finished word never reads "cAt" while `Case.same`
 still accepts either form of the right tile.
 
 Word games always ask about **spelling** ("which name starts with the letter X"), never about
@@ -230,9 +236,15 @@ quickest health check — during a minigame it should be a handful, not a hundre
   Build to a particular case; without it the game follows the case mode.
 - **Train words** – `TRAIN_WORDS` in `js/data.js`. Adding one needs its voice clip: run
   `python tools/generate_voice.py --missing`.
-- **Picture words** – `PICTURE_WORDS` in `js/data.js`: the word and the emoji Finish-the-word
-  shows it with. Keep them concrete enough to guess from the picture alone, and check the emoji
-  is old enough for the iPad's iOS. A new word needs its clip: `python tools/generate_voice.py --missing`.
+- **Picture words** – `PICTURE_WORDS` in `js/data.js`: the word and the emoji that shows it, used
+  by Make-a-word's shelf and by Which-basket. Keep them concrete enough to recognise from the
+  picture alone, and check the emoji is old enough for the iPad's iOS. A new word needs its clip:
+  `python tools/generate_voice.py --missing`.
+- **Word families** – `WORD_FAMILIES` in `js/data.js`: a rime and the three letters that make a
+  word in front of it. Every one has to be a real word with a picture and a clip — Make-a-word
+  says whatever is tapped, so there is no wrong answer to hide a gap behind — and three long,
+  because the rack holds three tiles and the shelf three frames. That rules out families whose
+  third word has no honest picture (there is no emoji for a *wig*).
 - **Word games** – `js/words.js`. `GAMES` at the top is the hub registry: adding a game is one
   entry (`id`, `title`, `icon`, `make`) plus its function, and the menu builds itself. Each game
   returns `{ stop() }` like the letter minigames do. The unlock gate is `ALL_COLLECTED()` in
