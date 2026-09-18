@@ -89,6 +89,7 @@ const App = (() => {
     holder.querySelector('img').src = c.img;
     holder.querySelector('img').alt = c.name;
     show('intro');
+    learnFace(c); // ready long before the reveal needs it
     setTimeout(() => Voice.say(introPhrase(c), { key: `${c.letter}-intro` }), 250);
   }
 
@@ -132,12 +133,30 @@ const App = (() => {
   // The payoff for the whole letter: the friend turns up as the same silhouette
   // the intro teased, and taps rub the colour back into it. The character is
   // already earned by finishing the games – tapping only decides when to look.
-  const REVEAL_TAPS = 3;
-  // How wide the colour circle is after each tap; the last one opens it fully.
-  // A circle percentage resolves against the diagonal of the art, so these are
-  // smaller than they look: 17% is about a face, 33% about a body.
-  const REVEAL_RADII = ['0%', '17%', '33%'];
+  const REVEAL_TAPS = 6;
+  // How wide the shadow still is after each tap – it starts over the whole
+  // character and closes in on the face, which the last tap uncovers. A circle
+  // percentage resolves against the diagonal of the art, so these are smaller
+  // than they look: it takes about 62% to cover a whole character, so the first
+  // tap drops well inside that or nothing appears to happen, and 18% is a face. The steps are wide at first and tighten, so the early taps
+  // strip off a lot and the last few are the shadow clinging on.
+  const REVEAL_RADII = ['150%', '48%', '39%', '31%', '24%', '18%'];
   let revealTaps = 0, revealShown = true, revealTimers = [];
+  // Where each friend's face is, so the shadow's last stand is over it whatever
+  // shape the friend is – Xylophone wears its face below the middle, Moon's is
+  // off to one side. build_characters.py tags the face group with the pivot it
+  // drew it around (class="face" style="transform-origin:100px 100px", in the
+  // art's own 200x240 box), so the art is the source of truth and there is no
+  // table here to drift out of step with it.
+  const FACE = {};
+  function learnFace(c) {
+    if (FACE[c.letter]) return;
+    fetch(c.img).then(r => r.text()).then(svg => {
+      const at = svg.match(/class="face"[^>]*transform-origin:\s*([\d.]+)px\s+([\d.]+)px/);
+      const box = svg.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/);
+      if (at && box) FACE[c.letter] = [`${(at[1] / box[1] * 100).toFixed(1)}%`, `${(at[2] / box[2] * 100).toFixed(1)}%`];
+    }).catch(() => { /* the reveal still works, the shadow just sits mid-art */ });
+  }
   const revealLater = (fn, ms) => revealTimers.push(setTimeout(fn, ms));
   function clearReveal() { revealTimers.forEach(clearTimeout); revealTimers = []; }
   const replayOn = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
@@ -161,6 +180,9 @@ const App = (() => {
     clearReveal();
     revealTaps = 0;
     revealShown = false;
+    const [fx, fy] = FACE[c.letter] || ['50%', '42%'];
+    $('#reveal-char').style.setProperty('--fx', fx);
+    $('#reveal-char').style.setProperty('--fy', fy);
     $('#reveal-inner').classList.add('mystery');
     $('#reveal-char').style.setProperty('--r', REVEAL_RADII[0]);
     $('#reveal-q').style.opacity = 1;
@@ -198,9 +220,9 @@ const App = (() => {
     Sfx.rise(revealTaps - 1);
     clearReveal(); armReveal(c);
     $('#reveal-char').style.setProperty('--r', REVEAL_RADII[revealTaps]);
-    // The question mark has done its job once the first window opens – and it
-    // sits exactly where the face comes through.
-    $('#reveal-q').style.opacity = 0;
+    // The question mark marks the hidden face, so it stays while the shadow is
+    // still big enough to hold it, and fades as that closes in.
+    $('#reveal-q').style.opacity = Math.max(0, 1 - revealTaps / 3);
     replayOn($('#reveal-char .shape'), 'poke');
   }
 
@@ -208,7 +230,7 @@ const App = (() => {
     if (revealShown) return;
     revealShown = true;
     clearReveal();
-    $('#reveal-char').style.setProperty('--r', '150%');
+    $('#reveal-char').style.setProperty('--r', '0%');
     $('#reveal-q').style.opacity = 0;
     $('#reveal-inner').classList.remove('mystery');
     replayOn($('#reveal-char .shape'), 'poke');
