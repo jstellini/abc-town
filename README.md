@@ -100,8 +100,8 @@ Paint → Monster, advancing two steps per play), then finishes with Build-a-Let
   tier by tier (tap again and it crumbles); the **see-saw** flips and flings the teddy sky-high.
 
 Progress is saved in the browser (localStorage). Hold the ⚙️ button for a second to open
-the grown-ups panel: pick the letter case, test the voice, unlock everyone (for trying the
-town), or reset.
+the grown-ups panel: pick the letter case, unlock everyone — which opens Word Town too, since
+that waits on the whole alphabet — or reset progress.
 
 ### Big, little and both
 

@@ -243,7 +243,6 @@ const App = (() => {
   // ---------- grown-ups panel ----------
   function openParent() {
     $('#pp-count').textContent = unlockedCount();
-    $('#pp-voice-name').textContent = Voice.voiceName();
     $$('#pp-case .seg-btn').forEach(b => b.classList.toggle('sel', b.dataset.case === Case.get()));
     $('#parent-panel').classList.remove('hidden');
   }
@@ -327,7 +326,6 @@ const App = (() => {
 
     holdToOpen($('#btn-parent'), 1200, openParent);
     $('#pp-close').addEventListener('click', () => $('#parent-panel').classList.add('hidden'));
-    $('#pp-voice').addEventListener('click', () => Voice.say(introPhrase(CHARACTERS[0]), { key: `${CHARACTERS[0].letter}-intro` }));
     $$('#pp-case .seg-btn').forEach(b => b.addEventListener('click', () => {
       Sfx.tap();
       progress.case = b.dataset.case; save(); applyCase();
